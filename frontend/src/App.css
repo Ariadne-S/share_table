@@ -1,0 +1,142 @@
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+nav {
+  margin-bottom: 1rem;
+}
+
+nav a {
+  font-size: 0.95em;
+}
+
+.copy-btn {
+  font-size: 0.85em;
+  padding: 0.2em 0.5em;
+  margin-left: 0.5em;
+}
+
+.page h1 {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+}
+
+.page form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.page input[type="text"] {
+  flex: 1;
+  max-width: 300px;
+  padding: 0.6em 1em;
+  border-radius: 8px;
+  border: 1px solid #646cff;
+  font-size: 1em;
+}
+
+.page .error {
+  color: #e74c3c;
+  margin-top: 1rem;
+}
+
+.table-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-column {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-column input {
+  padding: 0.6em 1em;
+  border-radius: 8px;
+  border: 1px solid #646cff;
+  font-size: 0.9em;
+  width: 160px;
+}
+
+.editable-cell {
+  cursor: pointer;
+  display: block;
+  min-height: 1.5em;
+  padding: 2px 4px;
+}
+
+.editable-cell:hover {
+  background-color: rgba(100, 108, 255, 0.15);
+  border-radius: 4px;
+}
+
+.editable-cell + input {
+  width: 100%;
+  min-width: 80px;
+  padding: 0.25em 0.5em;
+  border-radius: 4px;
+}
+
+.delete-btn {
+  padding: 0.2em 0.5em;
+  font-size: 1.2em;
+  line-height: 1;
+  background: transparent;
+  color: #888;
+}
+
+.delete-btn:hover {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.share-link {
+  font-size: 0.9em;
+  color: #888;
+  margin-bottom: 1rem;
+  word-break: break-all;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+th, td {
+  border: 1px solid #444;
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+th {
+  background-color: #333;
+  font-weight: 600;
+}
+
+tr:hover td {
+  background-color: rgba(100, 108, 255, 0.05);
+}
+
+@media (prefers-color-scheme: light) {
+  th, td {
+    border-color: #ddd;
+  }
+  th {
+    background-color: #f0f0f0;
+  }
+  tr:hover td {
+    background-color: rgba(100, 108, 255, 0.08);
+  }
+}

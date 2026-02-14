@@ -1,0 +1,4 @@
+com/sharetable/ShareTableApplicationTests.class
+com/sharetable/controller/TableControllerTest.class
+com/sharetable/service/TableServiceTest.class
+com/sharetable/service/RowServiceTest.class

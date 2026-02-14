@@ -1,0 +1,40 @@
+# Build outputs
+/target/
+/build/
+/dist/
+*.jar
+*.war
+*.class
+
+# Dependencies
+/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+/coverage/
+*.lcov
+
+# Local Maven (when using project-local .m2)
+.m2/
