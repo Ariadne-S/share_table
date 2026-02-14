@@ -6,48 +6,46 @@ import com.sharetable.dto.TableResponse;
 import com.sharetable.dto.TableSummaryResponse;
 import com.sharetable.service.TableService;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
-
-/**
- * REST controller for table CRUD: list, create, get by share token, soft delete.
- */
+/** REST controller for table CRUD: list, create, get by share token, soft delete. */
 @RestController
 @RequestMapping("/tables")
 public class TableController {
 
-    private final TableService tableService;
+  private final TableService tableService;
 
-    public TableController(TableService tableService) {
-        this.tableService = tableService;
-    }
+  public TableController(TableService tableService) {
+    this.tableService = tableService;
+  }
 
-    @GetMapping
-    public ResponseEntity<List<TableSummaryResponse>> listTables() {
-        return ResponseEntity.ok(tableService.findAllSummaries());
-    }
+  @GetMapping
+  public ResponseEntity<List<TableSummaryResponse>> listTables() {
+    return ResponseEntity.ok(tableService.findAllSummaries());
+  }
 
-    @PostMapping
-    public ResponseEntity<TableResponse> createTable(@Valid @RequestBody CreateTableRequest request) {
-        Table table = tableService.createTable(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(TableResponse.from(table));
-    }
+  @PostMapping
+  public ResponseEntity<TableResponse> createTable(@Valid @RequestBody CreateTableRequest request) {
+    Table table = tableService.createTable(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(TableResponse.from(table));
+  }
 
-    @GetMapping("/{shareToken}")
-    public ResponseEntity<TableResponse> getByShareToken(@PathVariable UUID shareToken) {
-        return tableService.findByShareToken(shareToken)
-            .map(table -> ResponseEntity.ok(TableResponse.from(table)))
-            .orElse(ResponseEntity.notFound().build());
-    }
+  @GetMapping("/{shareToken}")
+  public ResponseEntity<TableResponse> getByShareToken(@PathVariable UUID shareToken) {
+    return tableService
+        .findByShareToken(shareToken)
+        .map(table -> ResponseEntity.ok(TableResponse.from(table)))
+        .orElse(ResponseEntity.notFound().build());
+  }
 
-    @DeleteMapping("/{shareToken}")
-    public ResponseEntity<Void> deleteTable(@PathVariable UUID shareToken) {
-        return tableService.softDeleteByShareToken(shareToken)
-            ? ResponseEntity.noContent().build()
-            : ResponseEntity.notFound().build();
-    }
+  @DeleteMapping("/{shareToken}")
+  public ResponseEntity<Void> deleteTable(@PathVariable UUID shareToken) {
+    return tableService.softDeleteByShareToken(shareToken)
+        ? ResponseEntity.noContent().build()
+        : ResponseEntity.notFound().build();
+  }
 }

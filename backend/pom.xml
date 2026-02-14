@@ -66,7 +66,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.diffplug.spotless</groupId>
+                <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>2.43.0</version>
                 <configuration>

@@ -2,17 +2,10 @@ package com.sharetable.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
 
 public record AddColumnRequest(
-    @NotBlank @Size(max = 255)
-    String name,
-
-    @Size(max = 50)
-    String type,
-
+    @NotBlank @Size(max = 255) String name,
+    @Size(max = 50) String type,
     Integer order,
-
-    List<String> enumValues
-) {}
+    List<String> enumValues) {}

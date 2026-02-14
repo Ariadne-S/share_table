@@ -117,6 +117,7 @@ WebSocket: connect to `/ws`, subscribe to `/topic/tables/{shareToken}` for real-
 
 ## Development
 
+- **CI** (backend + frontend): `./ci.sh`
 - **Backend tests**: `cd backend && ./mvnw test`
 - **Backend format**: `cd backend && ./mvnw spotless:apply` (check: `spotless:check`)
 - **Frontend build**: `cd frontend && npm run build`

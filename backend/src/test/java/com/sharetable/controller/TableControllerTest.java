@@ -1,60 +1,74 @@
 package com.sharetable.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sharetable.dto.CreateTableRequest;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sharetable.domain.Table;
+import com.sharetable.dto.CreateTableRequest;
+import com.sharetable.service.TableService;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(TableController.class)
 class TableControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-    @Test
-    void createTable_returnsCreatedWithShareToken() throws Exception {
-        var request = new CreateTableRequest("My List", null);
-        String body = objectMapper.writeValueAsString(request);
+  @MockBean TableService tableService;
 
-        var result = mockMvc.perform(post("/tables")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").exists())
-            .andExpect(jsonPath("$.shareToken").exists())
-            .andExpect(jsonPath("$.name").value("My List"))
-            .andExpect(jsonPath("$.columns").isArray())
-            .andReturn();
+  @Test
+  void createTable_returnsCreatedWithShareToken() throws Exception {
+    var table = new Table("My List");
+    when(tableService.createTable(any(CreateTableRequest.class))).thenReturn(table);
 
-        String responseBody = result.getResponse().getContentAsString();
-        String shareToken = objectMapper.readTree(responseBody).get("shareToken").asText();
+    var request = new CreateTableRequest("My List", null);
+    String body = objectMapper.writeValueAsString(request);
 
-        mockMvc.perform(get("/tables/" + shareToken))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.name").value("My List"));
-    }
+    mockMvc
+        .perform(post("/tables").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.shareToken").exists())
+        .andExpect(jsonPath("$.name").value("My List"))
+        .andExpect(jsonPath("$.columns").isArray());
 
-    @Test
-    void getByShareToken_unknown_returns404() throws Exception {
-        mockMvc.perform(get("/tables/00000000-0000-0000-0000-000000000000"))
-            .andExpect(status().isNotFound());
-    }
+    verify(tableService).createTable(any(CreateTableRequest.class));
+  }
+
+  @Test
+  void getByShareToken_returnsTableWhenFound() throws Exception {
+    var table = new Table("My List");
+    when(tableService.findByShareToken(table.getShareToken())).thenReturn(Optional.of(table));
+
+    mockMvc
+        .perform(get("/tables/" + table.getShareToken()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("My List"));
+
+    verify(tableService).findByShareToken(table.getShareToken());
+  }
+
+  @Test
+  void getByShareToken_unknown_returns404() throws Exception {
+    when(tableService.findByShareToken(any(UUID.class))).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(get("/tables/00000000-0000-0000-0000-000000000000"))
+        .andExpect(status().isNotFound());
+
+    verify(tableService).findByShareToken(any(UUID.class));
+  }
 }
