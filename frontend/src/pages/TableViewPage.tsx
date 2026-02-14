@@ -1,25 +1,62 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getTable, addRow, deleteRow, updateCells, addColumn, updateColumn, deleteColumn, deleteTable } from '../api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  getTable,
+  addRow,
+  deleteRow,
+  updateCells,
+  addColumn,
+  updateColumn,
+  deleteColumn,
+  deleteTable,
+  reorderColumns,
+} from '../api';
+import { TableViewSkeleton } from '../components/Skeleton';
+import { useToast } from '../contexts/ToastContext';
+import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import { useTableWebSocket } from '../hooks/useTableWebSocket';
-import type { TableResponse } from '../types';
+import type { ColumnResponse, RowResponse, TableResponse } from '../types';
 
 const COLUMN_TYPES = ['string', 'number', 'date', 'enum'] as const;
 
 function getCellColumnType(col: { type?: string; enumValues?: string[] }): string {
   const t = col.type || 'string';
-  return COLUMN_TYPES.includes(t as typeof COLUMN_TYPES[number]) ? t : 'string';
+  return COLUMN_TYPES.includes(t as (typeof COLUMN_TYPES)[number]) ? t : 'string';
 }
 
-const inputBase = 'w-full min-w-[80px] py-1 px-2 rounded border border-[#646cff] bg-neutral-800 text-inherit';
+const inputBase = 'w-full min-w-[80px] py-1 px-2 rounded border border-[#646cff] bg-input text-fg';
+
+function exportCSV(table: TableResponse): string {
+  const headers = table.columns.map((c) => `"${c.name.replace(/"/g, '""')}"`).join(',');
+  const rows = table.rows.map((r) =>
+    table.columns.map((c) => `"${(r.cells[c.id] ?? '').replace(/"/g, '""')}"`).join(','),
+  );
+  return [headers, ...rows].join('\n');
+}
+
+function exportJSON(table: TableResponse): string {
+  return JSON.stringify(
+    {
+      name: table.name,
+      columns: table.columns.map((c) => ({ name: c.name, type: c.type })),
+      rows: table.rows.map((r) =>
+        Object.fromEntries(table.columns.map((c) => [c.name, r.cells[c.id] ?? ''])),
+      ),
+    },
+    null,
+    2,
+  );
+}
 
 export default function TableViewPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const navigate = useNavigate();
+  const toast = useToast();
   const [table, setTable] = useState<TableResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingCell, setEditingCell] = useState<{ rowId: string; columnId: string } | null>(null);
+  const [cellValue, setCellValue] = useState('');
   const [newColumnName, setNewColumnName] = useState('');
   const [newColumnType, setNewColumnType] = useState<string>('string');
   const [newColumnEnumValues, setNewColumnEnumValues] = useState('');
@@ -27,7 +64,10 @@ export default function TableViewPage() {
   const [editColumnName, setEditColumnName] = useState('');
   const [editColumnType, setEditColumnType] = useState('');
   const [editColumnEnumValues, setEditColumnEnumValues] = useState('');
+  const [filterQuery, setFilterQuery] = useState('');
   const [mutating, setMutating] = useState(false);
+  const [draggedColId, setDraggedColId] = useState<string | null>(null);
+  const [dragOverColId, setDragOverColId] = useState<string | null>(null);
 
   const fetchTable = useCallback(() => {
     if (!shareToken) return;
@@ -45,7 +85,36 @@ export default function TableViewPage() {
 
   useTableWebSocket(shareToken ?? '', handleTableUpdate);
 
-  async function handleAddRow() {
+  const performCellSave = useCallback(
+    async (rowId: string, columnId: string, value: string) => {
+      if (!shareToken) return;
+      setEditingCell(null);
+      try {
+        await updateCells(shareToken, rowId, { [columnId]: value });
+        fetchTable();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update');
+        setEditingCell({ rowId, columnId });
+      }
+    },
+    [shareToken, fetchTable],
+  );
+
+  const debouncedCellSave = useDebouncedCallback(performCellSave, 400);
+
+  const handleCellSave = useCallback(
+    (rowId: string, columnId: string, value: string, immediate = false) => {
+      if (immediate) {
+        debouncedCellSave.cancel();
+        performCellSave(rowId, columnId, value);
+      } else {
+        debouncedCellSave(rowId, columnId, value);
+      }
+    },
+    [debouncedCellSave, performCellSave],
+  );
+
+  const handleAddRow = useCallback(async () => {
     if (!shareToken) return;
     setMutating(true);
     setError(null);
@@ -57,31 +126,36 @@ export default function TableViewPage() {
     } finally {
       setMutating(false);
     }
-  }
+  }, [shareToken, fetchTable]);
 
-  async function handleDeleteRow(rowId: string) {
-    if (!shareToken) return;
+  async function handleDeleteRow(row: RowResponse) {
+    if (!shareToken || !table) return;
+    const cells = { ...row.cells };
     setMutating(true);
     setError(null);
     try {
-      await deleteRow(shareToken, rowId);
-      fetchTable();
+      await deleteRow(shareToken, row.id);
+      setTable((prev) =>
+        prev ? { ...prev, rows: prev.rows.filter((r) => r.id !== row.id) } : prev,
+      );
+      toast.showToast('Row deleted', {
+        action: {
+          label: 'Undo',
+          onAction: async () => {
+            try {
+              const added = await addRow(shareToken);
+              await updateCells(shareToken, added.id, cells);
+              fetchTable();
+            } catch {
+              toast.showToast('Failed to restore row');
+            }
+          },
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete row');
     } finally {
       setMutating(false);
-    }
-  }
-
-  async function handleCellSave(rowId: string, columnId: string, value: string) {
-    if (!shareToken) return;
-    setEditingCell(null);
-    try {
-      await updateCells(shareToken, rowId, { [columnId]: value });
-      fetchTable();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update');
-      setEditingCell({ rowId, columnId });
     }
   }
 
@@ -90,9 +164,13 @@ export default function TableViewPage() {
     setMutating(true);
     setError(null);
     const type = newColumnType || 'string';
-    const enumValues = (type === 'enum' && newColumnEnumValues.trim())
-      ? newColumnEnumValues.split(',').map((v) => v.trim()).filter(Boolean)
-      : undefined;
+    const enumValues =
+      type === 'enum' && newColumnEnumValues.trim()
+        ? newColumnEnumValues
+            .split(',')
+            .map((v) => v.trim())
+            .filter(Boolean)
+        : undefined;
     try {
       await addColumn(shareToken, { name: newColumnName.trim(), type, enumValues });
       setNewColumnName('');
@@ -106,10 +184,12 @@ export default function TableViewPage() {
     }
   }
 
-  function startEditColumn(col: { id: string; name: string; type: string; enumValues?: string[] }) {
+  function startEditColumn(col: ColumnResponse) {
     setEditingColumnId(col.id);
     setEditColumnName(col.name);
-    setEditColumnType(COLUMN_TYPES.includes(col.type as typeof COLUMN_TYPES[number]) ? col.type : 'string');
+    setEditColumnType(
+      COLUMN_TYPES.includes(col.type as (typeof COLUMN_TYPES)[number]) ? col.type : 'string',
+    );
     setEditColumnEnumValues(col.enumValues?.join(', ') ?? '');
   }
 
@@ -122,9 +202,13 @@ export default function TableViewPage() {
     setMutating(true);
     setError(null);
     const type = editColumnType || 'string';
-    const enumValues = (type === 'enum' && editColumnEnumValues.trim())
-      ? editColumnEnumValues.split(',').map((v) => v.trim()).filter(Boolean)
-      : [];
+    const enumValues =
+      editColumnType === 'enum' && editColumnEnumValues.trim()
+        ? editColumnEnumValues
+            .split(',')
+            .map((v) => v.trim())
+            .filter(Boolean)
+        : [];
     try {
       await updateColumn(shareToken, editingColumnId, {
         name: editColumnName.trim(),
@@ -140,16 +224,53 @@ export default function TableViewPage() {
     }
   }
 
-  async function handleDeleteColumn(columnId: string) {
-    if (!shareToken) return;
+  async function handleDeleteColumn(col: ColumnResponse) {
+    if (!shareToken || !table) return;
     if (!confirm('Delete this column? All cell data in this column will be removed.')) return;
+    const colCopy = { name: col.name, type: col.type, enumValues: [...(col.enumValues ?? [])] };
     setMutating(true);
     setError(null);
     try {
-      await deleteColumn(shareToken, columnId);
-      fetchTable();
+      await deleteColumn(shareToken, col.id);
+      setTable((prev) =>
+        prev
+          ? { ...prev, columns: prev.columns.filter((c) => c.id !== col.id) }
+          : prev,
+      );
+      toast.showToast('Column deleted', {
+        action: {
+          label: 'Undo',
+          onAction: async () => {
+            try {
+              await addColumn(shareToken, colCopy);
+              fetchTable();
+            } catch {
+              toast.showToast('Failed to restore column');
+            }
+          },
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete column');
+    } finally {
+      setMutating(false);
+    }
+  }
+
+  async function handleReorderColumns(newColumnIds: string[]) {
+    if (!shareToken) return;
+    setMutating(true);
+    setError(null);
+    try {
+      await reorderColumns(shareToken, newColumnIds);
+      setTable((prev) => {
+        if (!prev) return prev;
+        const orderMap = Object.fromEntries(newColumnIds.map((id, i) => [id, i]));
+        const sorted = [...prev.columns].sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
+        return { ...prev, columns: sorted };
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reorder columns');
     } finally {
       setMutating(false);
     }
@@ -170,61 +291,107 @@ export default function TableViewPage() {
     }
   }
 
+  const filteredRows = useMemo(() => {
+    if (!table || !filterQuery.trim()) return table?.rows ?? [];
+    const q = filterQuery.toLowerCase().trim();
+    return table.rows.filter((row) =>
+      table.columns.some((c) => (row.cells[c.id] ?? '').toLowerCase().includes(q)),
+    );
+  }, [table, filterQuery]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handleAddRow();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleAddRow]);
+
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
-        Loading...
-      </div>
+      <>
+        <TableViewSkeleton />
+      </>
     );
   }
   if (error) {
-    return (
-      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
+    return <p className="text-red-500">{error}</p>;
   }
   if (!table) {
-    return (
-      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
-        Not found
-      </div>
-    );
+    return <p className="text-fg">Not found</p>;
   }
+
+  const tableData = table;
 
   function copyShareLink() {
     navigator.clipboard.writeText(window.location.href);
   }
 
+  function handleExport(format: 'csv' | 'json') {
+    const data = format === 'csv' ? exportCSV(tableData) : exportJSON(tableData);
+    const blob = new Blob([data], {
+      type: format === 'csv' ? 'text/csv' : 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${tableData.name.replace(/[^a-z0-9]/gi, '_')}.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function startEditCell(row: RowResponse, col: ColumnResponse) {
+    setEditingCell({ rowId: row.id, columnId: col.id });
+    setCellValue(row.cells[col.id] ?? '');
+  }
+
+  const cols = [...tableData.columns];
+
   return (
-    <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
-      <nav className="mb-4">
-        <Link to="/" className="text-sm font-medium text-[#646cff] hover:text-[#535bf2]">
-          My Tables
-        </Link>
-        {' · '}
-        <Link to="/create" className="text-sm font-medium text-[#646cff] hover:text-[#535bf2]">
-          Create Table
-        </Link>
-      </nav>
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <h1 className="text-3xl font-semibold m-0">{table.name}</h1>
-        <button
-          type="button"
-          className="text-sm py-1.5 px-3 rounded bg-transparent text-neutral-400 hover:text-red-500 hover:border-red-500 border border-transparent disabled:opacity-50"
-          onClick={handleDeleteTable}
-          disabled={mutating}
-          title="Delete table"
-        >
-          Delete table
-        </button>
+    <>
+      <div className="flex items-center justify-between gap-4 mb-2 flex-wrap">
+        <h1 className="text-3xl font-semibold m-0 text-fg">{tableData.name}</h1>
+        <div className="flex gap-2 items-center flex-wrap">
+          <button
+            type="button"
+            className="text-sm py-1.5 px-3 rounded bg-transparent text-muted hover:text-red-500 hover:border-red-500 border border-transparent disabled:opacity-50"
+            onClick={handleDeleteTable}
+            disabled={mutating}
+            title="Delete table"
+          >
+            Delete table
+          </button>
+          <button
+            type="button"
+            className="text-sm py-1.5 px-3 rounded border border-border bg-input hover:border-accent text-fg"
+            onClick={() => handleExport('csv')}
+            title="Export CSV"
+          >
+            Export CSV
+          </button>
+          <button
+            type="button"
+            className="text-sm py-1.5 px-3 rounded border border-border bg-input hover:border-accent text-fg"
+            onClick={() => handleExport('json')}
+            title="Export JSON"
+          >
+            Export JSON
+          </button>
+        </div>
       </div>
-      <p className="text-sm text-neutral-400 mb-4 break-all">
-        Share: <a href={window.location.href} className="text-[#646cff] hover:text-[#535bf2]">{window.location.href}</a>
-        {' '}
+      <p className="text-sm text-muted mb-4 break-all">
+        Share:{' '}
+        <a href={window.location.href} className="text-accent hover:text-accent-hover">
+          {window.location.href}
+        </a>
+{' '}
         <button
           type="button"
-          className="text-sm py-1 px-2 ml-2 rounded border border-[#646cff]"
+          className="text-sm py-1 px-2 ml-2 rounded border border-accent"
           onClick={copyShareLink}
           title="Copy link"
         >
@@ -236,10 +403,19 @@ export default function TableViewPage() {
         <button
           onClick={handleAddRow}
           disabled={mutating}
-          className="px-4 py-2 rounded-lg border border-transparent font-medium bg-neutral-800 hover:border-[#646cff] cursor-pointer disabled:opacity-50"
+          className="px-4 py-2 rounded-lg border border-transparent font-medium bg-input hover:border-accent cursor-pointer disabled:opacity-50 text-fg"
+          title="Add row (Ctrl+Enter)"
         >
           {mutating ? '...' : 'Add Row'}
         </button>
+        <input
+          type="text"
+          placeholder="Filter rows..."
+          value={filterQuery}
+          onChange={(e) => setFilterQuery(e.target.value)}
+          className="w-40 px-4 py-2 rounded-lg border border-accent bg-input text-fg text-sm"
+          title="Filter rows by cell content"
+        />
         <div className="flex gap-2 items-center">
           <input
             type="text"
@@ -247,16 +423,18 @@ export default function TableViewPage() {
             value={newColumnName}
             onChange={(e) => setNewColumnName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
-            className="w-40 px-4 py-2 rounded-lg border border-[#646cff] bg-neutral-800 text-sm"
+            className="w-40 px-4 py-2 rounded-lg border border-accent bg-input text-fg text-sm"
           />
           <select
             value={newColumnType}
             onChange={(e) => setNewColumnType(e.target.value)}
-            className="w-24 px-2 py-2 rounded-lg border border-[#646cff] bg-neutral-800 text-inherit text-sm"
+            className="w-24 px-2 py-2 rounded-lg border border-accent bg-input text-fg text-sm"
             title="Column type"
           >
             {COLUMN_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
           {newColumnType === 'enum' && (
@@ -266,13 +444,13 @@ export default function TableViewPage() {
               value={newColumnEnumValues}
               onChange={(e) => setNewColumnEnumValues(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
-              className="w-52 px-4 py-2 rounded-lg border border-[#646cff] bg-neutral-800 text-sm"
+              className="w-52 px-4 py-2 rounded-lg border border-accent bg-input text-fg text-sm"
             />
           )}
           <button
             onClick={handleAddColumn}
             disabled={!newColumnName.trim() || mutating}
-            className="px-4 py-2 rounded-lg border border-transparent font-medium bg-neutral-800 hover:border-[#646cff] cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-transparent font-medium bg-input hover:border-accent cursor-pointer disabled:opacity-50 text-fg"
           >
             Add Column
           </button>
@@ -282,8 +460,42 @@ export default function TableViewPage() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              {table.columns.map((col) => (
-                <th key={col.id} className="relative min-w-[120px] border border-neutral-600 px-3 py-2 text-left bg-neutral-800 font-semibold">
+              {cols.map((col) => (
+                <th
+                  key={col.id}
+                  draggable
+                  onDragStart={() => setDraggedColId(col.id)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (draggedColId && draggedColId !== col.id) setDragOverColId(col.id);
+                  }}
+                  onDragLeave={() => setDragOverColId(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (!draggedColId || draggedColId === col.id) return;
+                    const fromIdx = cols.findIndex((c) => c.id === draggedColId);
+                    const toIdx = cols.findIndex((c) => c.id === col.id);
+                    if (fromIdx < 0 || toIdx < 0) return;
+                    const newOrder = [...cols];
+                    const [removed] = newOrder.splice(fromIdx, 1);
+                    newOrder.splice(toIdx, 0, removed);
+                    handleReorderColumns(newOrder.map((c) => c.id));
+                    setDraggedColId(null);
+                    setDragOverColId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedColId(null);
+                    setDragOverColId(null);
+                  }}
+                  className={`relative min-w-[120px] border px-3 py-2 text-left font-semibold select-none cursor-grab active:cursor-grabbing ${
+                    dragOverColId === col.id
+                      ? 'border-accent bg-accent/20'
+                      : 'border-border bg-input text-fg'
+                  } ${draggedColId === col.id ? 'opacity-50' : ''}`}
+                >
+                  <span className="inline-block mr-1" title="Drag to reorder">
+                    ⋮⋮
+                  </span>
                   {editingColumnId === col.id ? (
                     <div className="flex flex-col gap-1">
                       <input
@@ -292,15 +504,17 @@ export default function TableViewPage() {
                         onChange={(e) => setEditColumnName(e.target.value)}
                         placeholder="Name"
                         onKeyDown={(e) => e.key === 'Enter' && handleUpdateColumn()}
-                        className="py-1 px-2 rounded border border-[#646cff] bg-neutral-900 text-sm"
+                        className="py-1 px-2 rounded border border-accent bg-bg text-fg text-sm"
                       />
                       <select
                         value={editColumnType}
                         onChange={(e) => setEditColumnType(e.target.value)}
-                        className="py-1 px-2 rounded border border-[#646cff] bg-neutral-900 text-sm"
+                        className="py-1 px-2 rounded border border-accent bg-bg text-fg text-sm"
                       >
                         {COLUMN_TYPES.map((t) => (
-                          <option key={t} value={t}>{t}</option>
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
                         ))}
                       </select>
                       {editColumnType === 'enum' && (
@@ -310,7 +524,7 @@ export default function TableViewPage() {
                           onChange={(e) => setEditColumnEnumValues(e.target.value)}
                           placeholder="Enum (comma-separated)"
                           onKeyDown={(e) => e.key === 'Enter' && handleUpdateColumn()}
-                          className="py-1 px-2 rounded border border-[#646cff] bg-neutral-900 text-sm"
+                          className="py-1 px-2 rounded border border-accent bg-bg text-fg text-sm"
                         />
                       )}
                       <div className="flex gap-1">
@@ -318,14 +532,14 @@ export default function TableViewPage() {
                           type="button"
                           onClick={handleUpdateColumn}
                           disabled={mutating}
-                          className="px-2 py-1 text-sm rounded border border-[#646cff] bg-neutral-800"
+                          className="px-2 py-1 text-sm rounded border border-accent bg-input"
                         >
                           Save
                         </button>
                         <button
                           type="button"
                           onClick={cancelEditColumn}
-                          className="px-2 py-1 text-sm rounded border border-neutral-600"
+                          className="px-2 py-1 text-sm rounded border border-border"
                         >
                           Cancel
                         </button>
@@ -334,22 +548,28 @@ export default function TableViewPage() {
                   ) : (
                     <>
                       <span>{col.name}</span>
-                      <span className="block text-[0.7rem] font-normal text-neutral-400 mt-0.5">
+                      <span className="block text-[0.7rem] font-normal text-muted mt-0.5">
                         {getCellColumnType(col)}
                       </span>
                       <div className="absolute top-1 right-1 flex gap-0.5">
                         <button
                           type="button"
-                          className="p-1 text-sm leading-none bg-transparent text-neutral-400 hover:text-[#646cff] hover:bg-[#646cff]/15 rounded"
-                          onClick={() => startEditColumn(col)}
+                          className="p-1 text-sm leading-none bg-transparent text-muted hover:text-accent hover:bg-accent/15 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditColumn(col);
+                          }}
                           title="Edit column"
                         >
                           ✎
                         </button>
                         <button
                           type="button"
-                          className="p-1 text-sm leading-none bg-transparent text-neutral-400 hover:text-red-500 rounded disabled:opacity-50"
-                          onClick={() => handleDeleteColumn(col.id)}
+                          className="p-1 text-sm leading-none bg-transparent text-muted hover:text-red-500 rounded disabled:opacity-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteColumn(col);
+                          }}
                           disabled={mutating}
                           title="Delete column"
                         >
@@ -360,50 +580,71 @@ export default function TableViewPage() {
                   )}
                 </th>
               ))}
-              <th className="border border-neutral-600 px-3 py-2 bg-neutral-800" />
+              <th className="border border-border px-3 py-2 bg-input" />
             </tr>
           </thead>
           <tbody>
-            {table.rows.map((row) => (
-              <tr key={row.id} className="hover:bg-[#646cff]/5">
-                {table.columns.map((col) => {
-                  const isEditing = editingCell?.rowId === row.id && editingCell?.columnId === col.id;
+            {filteredRows.map((row) => (
+              <tr key={row.id} className="hover:bg-accent/5">
+                {tableData.columns.map((col) => {
+                  const isEditing =
+                    editingCell?.rowId === row.id && editingCell?.columnId === col.id;
                   const value = row.cells[col.id] ?? '';
                   const colType = getCellColumnType(col);
-                  const isEnum = colType === 'enum' && col.enumValues && col.enumValues.length > 0;
+                  const isEnum =
+                    colType === 'enum' && col.enumValues && col.enumValues.length > 0;
                   return (
-                    <td key={col.id} className="border border-neutral-600 px-3 py-2">
+                    <td key={col.id} className="border border-border px-3 py-2">
                       {isEditing ? (
                         isEnum ? (
                           <select
                             autoFocus
-                            value={value}
-                            onChange={(e) => handleCellSave(row.id, col.id, e.target.value)}
+                            value={cellValue}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setCellValue(v);
+                              handleCellSave(row.id, col.id, v, true);
+                            }}
+                            onBlur={() => setEditingCell(null)}
                             className={`${inputBase} cursor-pointer`}
                           >
                             <option value="">—</option>
                             {col.enumValues!.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
                             ))}
                           </select>
                         ) : (
                           <input
-                            type={colType === 'number' ? 'number' : colType === 'date' ? 'date' : 'text'}
-                            defaultValue={value}
-                            autoFocus
-                            onBlur={(e) => handleCellSave(row.id, col.id, e.target.value)}
+                            type={
+                              colType === 'number'
+                                ? 'number'
+                                : colType === 'date'
+                                  ? 'date'
+                                  : 'text'
+                            }
+                            value={cellValue}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setCellValue(v);
+                              handleCellSave(row.id, col.id, v);
+                            }}
+                            onBlur={(e) => handleCellSave(row.id, col.id, e.target.value, true)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                handleCellSave(row.id, col.id, (e.target as HTMLInputElement).value);
+                                handleCellSave(row.id, col.id, (e.target as HTMLInputElement).value, true);
                               }
+                              if (e.key === 'Escape') setEditingCell(null);
                             }}
+                            autoFocus
                             className={inputBase}
                           />
                         )
                       ) : (
                         <span
-                          className="block cursor-pointer min-h-[1.5em] py-0.5 px-1 hover:bg-[#646cff]/15 rounded"
-                          onClick={() => setEditingCell({ rowId: row.id, columnId: col.id })}
+                          className="block cursor-pointer min-h-[1.5em] py-0.5 px-1 hover:bg-accent/15 rounded text-fg"
+                          onClick={() => startEditCell(row, col)}
                         >
                           {value || '\u00a0'}
                         </span>
@@ -411,10 +652,10 @@ export default function TableViewPage() {
                     </td>
                   );
                 })}
-                <td className="border border-neutral-600 px-3 py-2">
+                <td className="border border-border px-3 py-2">
                   <button
-                    className="py-1 px-2 text-lg leading-none bg-transparent text-neutral-400 hover:text-red-500 hover:border-red-500 rounded border border-transparent"
-                    onClick={() => handleDeleteRow(row.id)}
+                    className="py-1 px-2 text-lg leading-none bg-transparent text-muted hover:text-red-500 hover:border-red-500 rounded border border-transparent"
+                    onClick={() => handleDeleteRow(row)}
                     title="Delete row"
                   >
                     ×
@@ -422,19 +663,21 @@ export default function TableViewPage() {
                 </td>
               </tr>
             ))}
-            {table.rows.length === 0 && (
+            {filteredRows.length === 0 && (
               <tr>
                 <td
-                  colSpan={(table.columns.length || 1) + 1}
-                  className="border border-neutral-600 px-3 py-2 text-neutral-400"
+                  colSpan={(tableData.columns.length || 1) + 1}
+                  className="border border-border px-3 py-2 text-muted"
                 >
-                  No rows yet. Click &quot;Add Row&quot; to start.
+                  {filterQuery.trim()
+                    ? 'No rows match the filter.'
+                    : 'No rows yet. Click "Add Row" or press Ctrl+Enter to start.'}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
 }

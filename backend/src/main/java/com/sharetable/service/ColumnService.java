@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -76,6 +77,24 @@ public class ColumnService {
                 broadcaster.broadcastTableUpdate(shareToken, column.getTable());
                 return column;
             });
+    }
+
+    @Transactional
+    public boolean reorderColumns(UUID shareToken, List<UUID> columnIds) {
+        var tableOpt = tableRepository.findByShareTokenWithColumns(shareToken);
+        if (tableOpt.isEmpty() || columnIds == null || columnIds.isEmpty()) return false;
+        var table = tableOpt.get();
+        var tableColumnIds = Set.copyOf(table.getColumns().stream().map(Column::getId).toList());
+        if (!tableColumnIds.equals(Set.copyOf(columnIds))) return false;
+        for (int i = 0; i < columnIds.size(); i++) {
+            var colId = columnIds.get(i);
+            table.getColumns().stream()
+                .filter(c -> c.getId().equals(colId))
+                .findFirst()
+                .ifPresent(c -> c.setOrder(i));
+        }
+        broadcaster.broadcastTableUpdate(shareToken, table);
+        return true;
     }
 
     @Transactional

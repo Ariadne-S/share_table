@@ -3,9 +3,9 @@ package com.sharetable.dto;
 import com.sharetable.domain.Table;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public record TableResponse(
     UUID id,
@@ -16,12 +16,16 @@ public record TableResponse(
     List<RowResponse> rows
 ) {
     public static TableResponse from(Table table) {
+        var columns = table.getColumns().stream()
+            .sorted(Comparator.comparingInt(c -> c.getOrder()))
+            .map(ColumnResponse::from)
+            .toList();
         return new TableResponse(
             table.getId(),
             table.getShareToken(),
             table.getName(),
             table.getCreatedAt(),
-            table.getColumns().stream().map(ColumnResponse::from).toList(),
+            columns,
             table.getRows().stream().map(RowResponse::from).toList()
         );
     }

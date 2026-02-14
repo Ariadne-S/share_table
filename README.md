@@ -5,7 +5,7 @@ A multi-user collaborative table application for tracking shopping lists, TV sho
 ## Tech Stack
 
 - **Backend**: Java 17, Spring Boot 3, PostgreSQL
-- **Frontend**: React 18, TypeScript, Vite
+- **Frontend**: React 19, TypeScript, Vite 7, Tailwind CSS v4
 - **Real-time**: STOMP over WebSocket (SockJS)
 
 ## Project Structure
@@ -18,7 +18,18 @@ share_table/
 └── README.md
 ```
 
-## Getting Started
+## One-Command Startup
+
+```bash
+docker compose up --build
+```
+
+- **App**: http://localhost
+- **API**: http://localhost:8080 (or via nginx proxy at /api)
+
+This starts Postgres, the Spring Boot backend, and the frontend (built and served by nginx).
+
+## Getting Started (Development)
 
 ### Prerequisites
 
@@ -29,7 +40,7 @@ share_table/
 ### 1. Start PostgreSQL
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 Or create a database named `sharetable` manually.
@@ -82,3 +93,14 @@ createdb sharetable
 - Add/edit/delete rows and cells
 - Share via link (no auth required)
 - Real-time updates when multiple users edit
+- Light/dark mode toggle
+- Loading skeletons
+- Undo for row/column delete (via toast)
+- Per-page error boundaries
+- Offline support (service worker, cached API)
+- Debounced cell edits (400ms)
+- Column drag-and-drop reordering
+- Export to CSV or JSON
+- Search/filter rows
+- One-command Docker startup
+- Keyboard shortcuts (Ctrl+Enter to add row)

@@ -83,3 +83,12 @@ export async function deleteColumn(shareToken: string, columnId: string): Promis
   });
   if (!res.ok) throw new Error(`Failed to delete column: ${res.statusText}`);
 }
+
+export async function reorderColumns(shareToken: string, columnIds: string[]): Promise<void> {
+  const res = await fetch(`${API_BASE}/tables/${shareToken}/columns/reorder`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ columnIds }),
+  });
+  if (!res.ok) throw new Error(`Failed to reorder columns: ${res.statusText}`);
+}

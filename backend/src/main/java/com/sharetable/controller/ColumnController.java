@@ -3,6 +3,7 @@ package com.sharetable.controller;
 import com.sharetable.domain.Column;
 import com.sharetable.dto.AddColumnRequest;
 import com.sharetable.dto.ColumnResponse;
+import com.sharetable.dto.ReorderColumnsRequest;
 import com.sharetable.dto.UpdateColumnRequest;
 import com.sharetable.service.ColumnService;
 import jakarta.validation.Valid;
@@ -29,6 +30,15 @@ public class ColumnController {
         return columnService.addColumn(shareToken, request)
             .map(col -> ResponseEntity.status(HttpStatus.CREATED).body(ColumnResponse.from(col)))
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/reorder")
+    public ResponseEntity<Void> reorderColumns(
+            @PathVariable UUID shareToken,
+            @Valid @RequestBody ReorderColumnsRequest request) {
+        return columnService.reorderColumns(shareToken, request.columnIds())
+            ? ResponseEntity.ok().build()
+            : ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/{columnId}")

@@ -19,15 +19,21 @@ async function loadApp() {
     return
   }
   try {
-    const [{ ErrorBoundary }, { default: App }] = await Promise.all([
+    const [{ ErrorBoundary }, { ThemeProvider }, { ToastProvider }, { default: App }] = await Promise.all([
       import('./ErrorBoundary'),
+      import('./contexts/ThemeContext'),
+      import('./contexts/ToastContext'),
       import('./App'),
     ])
     await import('./index.css')
     createRoot(rootEl).render(
       <StrictMode>
         <ErrorBoundary>
-          <App />
+          <ThemeProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </ThemeProvider>
         </ErrorBoundary>
       </StrictMode>,
     )

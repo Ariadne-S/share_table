@@ -4,3 +4,34 @@
   --color-scheme: light dark;
   --font-sans: system-ui, ui-sans-serif, Avenir, Helvetica, sans-serif;
 }
+
+:root {
+  --color-bg: 23 23 23;
+  --color-fg: 245 245 245;
+  --color-muted: 163 163 163;
+  --color-accent: 100 108 255;
+  --color-accent-hover: 83 91 242;
+  --color-border: 82 82 82;
+  --color-input-bg: 38 38 38;
+  --color-skeleton: 64 64 64;
+}
+
+html.light {
+  --color-bg: 250 250 250;
+  --color-fg: 23 23 23;
+  --color-muted: 115 115 115;
+  --color-accent: 100 108 255;
+  --color-accent-hover: 83 91 242;
+  --color-border: 214 211 209;
+  --color-input-bg: 255 255 255;
+  --color-skeleton: 229 231 235;
+}
+
+.bg-bg { background-color: rgb(var(--color-bg)); }
+.text-fg { color: rgb(var(--color-fg)); }
+.text-muted { color: rgb(var(--color-muted)); }
+.text-accent { color: rgb(var(--color-accent)); }
+.text-accent-hover { color: rgb(var(--color-accent-hover)); }
+.hover\:text-accent-hover:hover { color: rgb(var(--color-accent-hover)); }
+.border-border { border-color: rgb(var(--color-border)); }
+.bg-input { background-color: rgb(var(--color-input-bg)); }
