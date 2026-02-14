@@ -49,7 +49,9 @@ export default function TablesListPage() {
     return (
       <>
         <h1 className="text-3xl font-semibold mb-2">My Tables</h1>
-        <p className="mb-4 text-muted">Tables you&apos;ve created. Click to open and collaborate.</p>
+        <p className="mb-4 text-muted">
+          Tables you&apos;ve created. Click to open and collaborate.
+        </p>
         <TableListSkeleton />
       </>
     );
@@ -64,7 +66,11 @@ export default function TablesListPage() {
       <p className="mb-4 text-muted">Tables you&apos;ve created. Click to open and collaborate.</p>
       {tables.length === 0 ? (
         <p className="mt-4 text-muted">
-          No tables yet. <Link to="/create" className="text-accent hover:text-accent-hover">Create your first table</Link>.
+          No tables yet.{' '}
+          <Link to="/create" className="text-accent hover:text-accent-hover">
+            Create your first table
+          </Link>
+          .
         </p>
       ) : (
         <ul className="list-none p-0 m-0">

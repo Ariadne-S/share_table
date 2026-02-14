@@ -8,7 +8,10 @@ interface Toast {
 }
 
 interface ToastContextValue {
-  showToast: (msg: string, opts?: { action?: { label: string; onAction: () => void }; duration?: number }) => void;
+  showToast: (
+    msg: string,
+    opts?: { action?: { label: string; onAction: () => void }; duration?: number }
+  ) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -17,7 +20,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = useCallback(
-    (message: string, opts?: { action?: { label: string; onAction: () => void }; duration?: number }) => {
+    (
+      message: string,
+      opts?: { action?: { label: string; onAction: () => void }; duration?: number }
+    ) => {
       const id = crypto.randomUUID();
       const t: Toast = { id, message, action: opts?.action, duration: opts?.duration ?? 4000 };
       setToasts((prev) => [...prev, t]);
@@ -27,7 +33,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         }, t.duration);
       }
     },
-    [],
+    []
   );
 
   const dismiss = useCallback((id: string) => {
@@ -56,7 +62,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 {t.action.label}
               </button>
             )}
-            <button type="button" onClick={() => dismiss(t.id)} className="text-neutral-400 hover:text-neutral-200">
+            <button
+              type="button"
+              onClick={() => dismiss(t.id)}
+              className="text-neutral-400 hover:text-neutral-200"
+            >
               ×
             </button>
           </div>
@@ -66,6 +76,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook is the public API for this context
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useToast must be used within ToastProvider');

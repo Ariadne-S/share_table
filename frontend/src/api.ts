@@ -8,7 +8,10 @@ export async function getTables(): Promise<TableSummaryResponse[]> {
   return res.json();
 }
 
-export async function createTable(request: { name: string; columns?: { name: string; type?: string; order?: number }[] }): Promise<TableResponse> {
+export async function createTable(request: {
+  name: string;
+  columns?: { name: string; type?: string; order?: number }[];
+}): Promise<TableResponse> {
   const res = await fetch(`${API_BASE}/tables`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -44,7 +47,11 @@ export async function deleteRow(shareToken: string, rowId: string): Promise<void
   if (!res.ok) throw new Error(`Failed to delete row: ${res.statusText}`);
 }
 
-export async function updateCells(shareToken: string, rowId: string, cells: Record<string, string>): Promise<RowResponse> {
+export async function updateCells(
+  shareToken: string,
+  rowId: string,
+  cells: Record<string, string>
+): Promise<RowResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/rows/${rowId}/cells`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -57,7 +64,10 @@ export async function updateCells(shareToken: string, rowId: string, cells: Reco
   return res.json();
 }
 
-export async function addColumn(shareToken: string, column: { name: string; type?: string; order?: number; enumValues?: string[] }): Promise<ColumnResponse> {
+export async function addColumn(
+  shareToken: string,
+  column: { name: string; type?: string; order?: number; enumValues?: string[] }
+): Promise<ColumnResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,7 +77,11 @@ export async function addColumn(shareToken: string, column: { name: string; type
   return res.json();
 }
 
-export async function updateColumn(shareToken: string, columnId: string, column: { name?: string; type?: string; order?: number; enumValues?: string[] }): Promise<ColumnResponse> {
+export async function updateColumn(
+  shareToken: string,
+  columnId: string,
+  column: { name?: string; type?: string; order?: number; enumValues?: string[] }
+): Promise<ColumnResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns/${columnId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

@@ -11,33 +11,39 @@ function App() {
     <>
       <OfflineIndicator />
       <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <PageErrorBoundary pageName="Tables List">
-              <Layout><TablesListPage /></Layout>
-            </PageErrorBoundary>
-          }
-        />
-        <Route
-          path="/create"
-          element={
-            <PageErrorBoundary pageName="Create Table">
-              <Layout><CreateTablePage /></Layout>
-            </PageErrorBoundary>
-          }
-        />
-        <Route
-          path="/t/:shareToken"
-          element={
-            <PageErrorBoundary pageName="Table View">
-              <Layout><TableViewPage /></Layout>
-            </PageErrorBoundary>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <PageErrorBoundary pageName="Tables List">
+                <Layout>
+                  <TablesListPage />
+                </Layout>
+              </PageErrorBoundary>
+            }
+          />
+          <Route
+            path="/create"
+            element={
+              <PageErrorBoundary pageName="Create Table">
+                <Layout>
+                  <CreateTablePage />
+                </Layout>
+              </PageErrorBoundary>
+            }
+          />
+          <Route
+            path="/t/:shareToken"
+            element={
+              <PageErrorBoundary pageName="Table View">
+                <Layout>
+                  <TableViewPage />
+                </Layout>
+              </PageErrorBoundary>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
     </>
   );
 }

@@ -3,10 +3,16 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import type { TableResponse } from '../types';
 
-export function useTableWebSocket(shareToken: string | undefined, onUpdate: (table: TableResponse) => void) {
+export function useTableWebSocket(
+  shareToken: string | undefined,
+  onUpdate: (table: TableResponse) => void
+) {
   const clientRef = useRef<Client | null>(null);
   const onUpdateRef = useRef(onUpdate);
-  onUpdateRef.current = onUpdate;
+
+  useEffect(() => {
+    onUpdateRef.current = onUpdate;
+  });
 
   useEffect(() => {
     if (!shareToken) return;

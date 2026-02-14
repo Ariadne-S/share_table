@@ -29,7 +29,7 @@ const inputBase = 'w-full min-w-[80px] py-1 px-2 rounded border border-[#646cff]
 function exportCSV(table: TableResponse): string {
   const headers = table.columns.map((c) => `"${c.name.replace(/"/g, '""')}"`).join(',');
   const rows = table.rows.map((r) =>
-    table.columns.map((c) => `"${(r.cells[c.id] ?? '').replace(/"/g, '""')}"`).join(','),
+    table.columns.map((c) => `"${(r.cells[c.id] ?? '').replace(/"/g, '""')}"`).join(',')
   );
   return [headers, ...rows].join('\n');
 }
@@ -40,11 +40,11 @@ function exportJSON(table: TableResponse): string {
       name: table.name,
       columns: table.columns.map((c) => ({ name: c.name, type: c.type })),
       rows: table.rows.map((r) =>
-        Object.fromEntries(table.columns.map((c) => [c.name, r.cells[c.id] ?? ''])),
+        Object.fromEntries(table.columns.map((c) => [c.name, r.cells[c.id] ?? '']))
       ),
     },
     null,
-    2,
+    2
   );
 }
 
@@ -97,7 +97,7 @@ export default function TableViewPage() {
         setEditingCell({ rowId, columnId });
       }
     },
-    [shareToken, fetchTable],
+    [shareToken, fetchTable]
   );
 
   const debouncedCellSave = useDebouncedCallback(performCellSave, 400);
@@ -111,7 +111,7 @@ export default function TableViewPage() {
         debouncedCellSave(rowId, columnId, value);
       }
     },
-    [debouncedCellSave, performCellSave],
+    [debouncedCellSave, performCellSave]
   );
 
   const handleAddRow = useCallback(async () => {
@@ -136,7 +136,7 @@ export default function TableViewPage() {
     try {
       await deleteRow(shareToken, row.id);
       setTable((prev) =>
-        prev ? { ...prev, rows: prev.rows.filter((r) => r.id !== row.id) } : prev,
+        prev ? { ...prev, rows: prev.rows.filter((r) => r.id !== row.id) } : prev
       );
       toast.showToast('Row deleted', {
         action: {
@@ -188,7 +188,7 @@ export default function TableViewPage() {
     setEditingColumnId(col.id);
     setEditColumnName(col.name);
     setEditColumnType(
-      COLUMN_TYPES.includes(col.type as (typeof COLUMN_TYPES)[number]) ? col.type : 'string',
+      COLUMN_TYPES.includes(col.type as (typeof COLUMN_TYPES)[number]) ? col.type : 'string'
     );
     setEditColumnEnumValues(col.enumValues?.join(', ') ?? '');
   }
@@ -233,9 +233,7 @@ export default function TableViewPage() {
     try {
       await deleteColumn(shareToken, col.id);
       setTable((prev) =>
-        prev
-          ? { ...prev, columns: prev.columns.filter((c) => c.id !== col.id) }
-          : prev,
+        prev ? { ...prev, columns: prev.columns.filter((c) => c.id !== col.id) } : prev
       );
       toast.showToast('Column deleted', {
         action: {
@@ -266,7 +264,9 @@ export default function TableViewPage() {
       setTable((prev) => {
         if (!prev) return prev;
         const orderMap = Object.fromEntries(newColumnIds.map((id, i) => [id, i]));
-        const sorted = [...prev.columns].sort((a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0));
+        const sorted = [...prev.columns].sort(
+          (a, b) => (orderMap[a.id] ?? 0) - (orderMap[b.id] ?? 0)
+        );
         return { ...prev, columns: sorted };
       });
     } catch (err) {
@@ -295,13 +295,18 @@ export default function TableViewPage() {
     if (!table || !filterQuery.trim()) return table?.rows ?? [];
     const q = filterQuery.toLowerCase().trim();
     return table.rows.filter((row) =>
-      table.columns.some((c) => (row.cells[c.id] ?? '').toLowerCase().includes(q)),
+      table.columns.some((c) => (row.cells[c.id] ?? '').toLowerCase().includes(q))
     );
   }, [table, filterQuery]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLSelectElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         handleAddRow();
@@ -387,8 +392,7 @@ export default function TableViewPage() {
         Share:{' '}
         <a href={window.location.href} className="text-accent hover:text-accent-hover">
           {window.location.href}
-        </a>
-{' '}
+        </a>{' '}
         <button
           type="button"
           className="text-sm py-1 px-2 ml-2 rounded border border-accent"
@@ -591,8 +595,7 @@ export default function TableViewPage() {
                     editingCell?.rowId === row.id && editingCell?.columnId === col.id;
                   const value = row.cells[col.id] ?? '';
                   const colType = getCellColumnType(col);
-                  const isEnum =
-                    colType === 'enum' && col.enumValues && col.enumValues.length > 0;
+                  const isEnum = colType === 'enum' && col.enumValues && col.enumValues.length > 0;
                   return (
                     <td key={col.id} className="border border-border px-3 py-2">
                       {isEditing ? (
@@ -618,11 +621,7 @@ export default function TableViewPage() {
                         ) : (
                           <input
                             type={
-                              colType === 'number'
-                                ? 'number'
-                                : colType === 'date'
-                                  ? 'date'
-                                  : 'text'
+                              colType === 'number' ? 'number' : colType === 'date' ? 'date' : 'text'
                             }
                             value={cellValue}
                             onChange={(e) => {
@@ -633,7 +632,12 @@ export default function TableViewPage() {
                             onBlur={(e) => handleCellSave(row.id, col.id, e.target.value, true)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                handleCellSave(row.id, col.id, (e.target as HTMLInputElement).value, true);
+                                handleCellSave(
+                                  row.id,
+                                  col.id,
+                                  (e.target as HTMLInputElement).value,
+                                  true
+                                );
                               }
                               if (e.key === 'Escape') setEditingCell(null);
                             }}

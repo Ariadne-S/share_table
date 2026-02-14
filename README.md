@@ -84,7 +84,11 @@ createdb sharetable
 ## Development
 
 - **Backend tests**: `cd backend && ./mvnw test`
+- **Backend format**: `cd backend && ./mvnw spotless:apply` (check: `spotless:check`)
 - **Frontend build**: `cd frontend && npm run build`
+- **Frontend check**: `cd frontend && npm run check` (typecheck + lint + format:check)
+- **Frontend format**: `cd frontend && npm run format` (or `format:check` to verify only)
+- **EditorConfig**: `.editorconfig` enforces consistent indentation and line endings across editors
 - **Health check**: http://localhost:8080/actuator/health
 
 ## Features

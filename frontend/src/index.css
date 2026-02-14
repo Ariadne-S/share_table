@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme inline {
   --color-scheme: light dark;
@@ -27,11 +27,27 @@ html.light {
   --color-skeleton: 229 231 235;
 }
 
-.bg-bg { background-color: rgb(var(--color-bg)); }
-.text-fg { color: rgb(var(--color-fg)); }
-.text-muted { color: rgb(var(--color-muted)); }
-.text-accent { color: rgb(var(--color-accent)); }
-.text-accent-hover { color: rgb(var(--color-accent-hover)); }
-.hover\:text-accent-hover:hover { color: rgb(var(--color-accent-hover)); }
-.border-border { border-color: rgb(var(--color-border)); }
-.bg-input { background-color: rgb(var(--color-input-bg)); }
+.bg-bg {
+  background-color: rgb(var(--color-bg));
+}
+.text-fg {
+  color: rgb(var(--color-fg));
+}
+.text-muted {
+  color: rgb(var(--color-muted));
+}
+.text-accent {
+  color: rgb(var(--color-accent));
+}
+.text-accent-hover {
+  color: rgb(var(--color-accent-hover));
+}
+.hover\:text-accent-hover:hover {
+  color: rgb(var(--color-accent-hover));
+}
+.border-border {
+  border-color: rgb(var(--color-border));
+}
+.bg-input {
+  background-color: rgb(var(--color-input-bg));
+}
