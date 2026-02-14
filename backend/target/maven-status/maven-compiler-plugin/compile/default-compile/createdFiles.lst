@@ -5,6 +5,7 @@ com/sharetable/dto/AddColumnRequest.class
 com/sharetable/config/WebConfig.class
 com/sharetable/dto/UpdateColumnRequest.class
 com/sharetable/domain/Cell$CellId.class
+com/sharetable/dto/ReorderColumnsRequest.class
 com/sharetable/controller/ErrorHandler.class
 com/sharetable/dto/ColumnResponse.class
 com/sharetable/dto/CreateTableRequest.class

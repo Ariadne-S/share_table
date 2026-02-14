@@ -21,7 +21,7 @@ public enum ColumnType {
     private static final Pattern ISO_DATE = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}$");
     private static final Pattern ISO_DATETIME =
         Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)?$");
-    private static final Pattern TIME = Pattern.compile("^\\d{1,2}:\\d{2}(:\\d{2})?$");
+    private static final Pattern TIME_PATTERN = Pattern.compile("^\\d{1,2}:\\d{2}(:\\d{2})?$");
     private static final Pattern URL_PATTERN =
         Pattern.compile("^https?://[^\\s]+$", Pattern.CASE_INSENSITIVE);
     private static final Pattern EMAIL_PATTERN =
@@ -60,7 +60,7 @@ public enum ColumnType {
                 }
             }
             case "time" -> {
-                if (!TIME.matcher(value.trim()).matches()) {
+                if (!TIME_PATTERN.matcher(value.trim()).matches()) {
                     throw new IllegalArgumentException("Value must be a time (HH:mm or HH:mm:ss): " + value);
                 }
             }

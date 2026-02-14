@@ -87,11 +87,12 @@ public class ColumnService {
         var tableColumnIds = Set.copyOf(table.getColumns().stream().map(Column::getId).toList());
         if (!tableColumnIds.equals(Set.copyOf(columnIds))) return false;
         for (int i = 0; i < columnIds.size(); i++) {
+            final int order = i;
             var colId = columnIds.get(i);
             table.getColumns().stream()
                 .filter(c -> c.getId().equals(colId))
                 .findFirst()
-                .ifPresent(c -> c.setOrder(i));
+                .ifPresent(c -> c.setOrder(order));
         }
         broadcaster.broadcastTableUpdate(shareToken, table);
         return true;

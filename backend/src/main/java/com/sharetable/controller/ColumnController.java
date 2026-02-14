@@ -41,7 +41,7 @@ public class ColumnController {
             : ResponseEntity.notFound().build();
     }
 
-    @PatchMapping("/{columnId}")
+    @PatchMapping("/{columnId:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}")
     public ResponseEntity<ColumnResponse> updateColumn(
             @PathVariable UUID shareToken,
             @PathVariable UUID columnId,
@@ -51,7 +51,7 @@ public class ColumnController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{columnId}")
+    @DeleteMapping("/{columnId:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}")
     public ResponseEntity<Void> deleteColumn(
             @PathVariable UUID shareToken,
             @PathVariable UUID columnId) {

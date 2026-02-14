@@ -21,6 +21,7 @@
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/ColumnController.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/repository/TableRepository.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/converters/StringListConverter.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/ReorderColumnsRequest.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/ErrorHandler.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/Column.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/service/RowService.java
