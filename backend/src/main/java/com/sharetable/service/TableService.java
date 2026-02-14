@@ -1,6 +1,7 @@
 package com.sharetable.service;
 
 import com.sharetable.domain.Column;
+import com.sharetable.domain.ColumnType;
 import com.sharetable.domain.Table;
 import com.sharetable.dto.CreateTableRequest;
 import com.sharetable.dto.TableSummaryResponse;
@@ -31,9 +32,13 @@ public class TableService {
         if (request.columns() != null) {
             int order = 0;
             for (var col : request.columns()) {
-                var type = col.type() != null && !col.type().isBlank() ? col.type() : "text";
+                var type = ColumnType.normalize(col.type());
                 var colOrder = col.order() != null ? col.order() : order;
-                table.getColumns().add(new Column(table, col.name(), type, colOrder));
+                var enumValues = col.enumValues() != null ? col.enumValues().stream()
+                    .filter(v -> v != null && !v.isBlank())
+                    .map(String::trim)
+                    .toList() : List.<String>of();
+                table.getColumns().add(new Column(table, col.name(), type, colOrder, enumValues));
                 order++;
             }
         }

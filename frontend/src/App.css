@@ -64,6 +64,103 @@ nav a {
   width: 160px;
 }
 
+.add-column-with-type .column-type-select {
+  width: 100px;
+  padding: 0.6em 0.5em;
+  border-radius: 8px;
+  border: 1px solid #646cff;
+  font-size: 0.9em;
+  background: var(--bg, #1a1a1a);
+  color: inherit;
+}
+
+.add-column-with-type .enum-values-input {
+  width: 200px;
+}
+
+.column-header {
+  position: relative;
+  min-width: 120px;
+}
+
+.column-header .column-type-badge {
+  display: block;
+  font-size: 0.7em;
+  font-weight: normal;
+  color: #888;
+  margin-top: 2px;
+}
+
+.column-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+}
+
+.icon-btn {
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+  line-height: 1;
+  background: transparent;
+  color: #888;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.icon-btn:hover {
+  color: #646cff;
+  background: rgba(100, 108, 255, 0.15);
+}
+
+.icon-btn.delete-btn:hover {
+  color: #e74c3c;
+}
+
+.column-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.column-edit-form input,
+.column-edit-form select {
+  padding: 0.35em 0.5em;
+  border-radius: 4px;
+  border: 1px solid #646cff;
+  font-size: 0.9em;
+}
+
+.column-edit-form .cancel-btn {
+  font-size: 0.85em;
+  padding: 0.25em 0.5em;
+}
+
+.cell-input {
+  width: 100%;
+  min-width: 80px;
+  padding: 0.25em 0.5em;
+  border-radius: 4px;
+  font-size: inherit;
+  background: var(--bg, #1a1a1a);
+  color: inherit;
+  border: 1px solid #646cff;
+}
+
+.cell-select {
+  width: 100%;
+  min-width: 80px;
+  padding: 0.25em 0.5em;
+  border-radius: 4px;
+  font-size: inherit;
+  background: var(--bg, #1a1a1a);
+  color: inherit;
+  border: 1px solid #646cff;
+  cursor: pointer;
+}
+
 .editable-cell {
   cursor: pointer;
   display: block;
@@ -211,6 +308,11 @@ tr:hover td {
 }
 
 @media (prefers-color-scheme: light) {
+  .cell-select,
+  .cell-input,
+  .add-column-with-type .column-type-select {
+    background: #fff;
+  }
   th, td {
     border-color: #ddd;
   }

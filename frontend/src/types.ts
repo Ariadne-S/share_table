@@ -3,6 +3,7 @@ export interface ColumnResponse {
   name: string;
   type: string;
   order: number;
+  enumValues?: string[];
 }
 
 export interface RowResponse {

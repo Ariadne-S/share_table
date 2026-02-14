@@ -1,6 +1,7 @@
 package com.sharetable.service;
 
 import com.sharetable.domain.Column;
+import com.sharetable.domain.ColumnType;
 import com.sharetable.domain.Table;
 import com.sharetable.dto.AddColumnRequest;
 import com.sharetable.dto.UpdateColumnRequest;
@@ -8,6 +9,7 @@ import com.sharetable.repository.TableRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,8 +33,12 @@ public class ColumnService {
                     .max()
                     .orElse(-1);
                 int order = request.order() != null ? request.order() : maxOrder + 1;
-                var type = request.type() != null && !request.type().isBlank() ? request.type() : "text";
-                var column = new Column(table, request.name(), type, order);
+                var type = ColumnType.normalize(request.type());
+                var enumValues = request.enumValues() != null ? request.enumValues().stream()
+                    .filter(v -> v != null && !v.isBlank())
+                    .map(String::trim)
+                    .toList() : List.<String>of();
+                var column = new Column(table, request.name(), type, order, enumValues);
                 table.getColumns().add(column);
                 var saved = tableRepository.save(table);
                 broadcaster.broadcastTableUpdate(shareToken, saved);
@@ -56,10 +62,16 @@ public class ColumnService {
                     column.setName(request.name());
                 }
                 if (request.type() != null && !request.type().isBlank()) {
-                    column.setType(request.type());
+                    column.setType(ColumnType.normalize(request.type()));
                 }
                 if (request.order() != null) {
                     column.setOrder(request.order());
+                }
+                if (request.enumValues() != null) {
+                    column.setEnumValues(request.enumValues().stream()
+                        .filter(v -> v != null && !v.isBlank())
+                        .map(String::trim)
+                        .toList());
                 }
                 broadcaster.broadcastTableUpdate(shareToken, column.getTable());
                 return column;

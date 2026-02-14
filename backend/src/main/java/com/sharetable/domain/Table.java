@@ -23,6 +23,9 @@ public class Table {
     @jakarta.persistence.Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @jakarta.persistence.Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @OneToMany(mappedBy = "table", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("ord ASC")
     private List<Column> columns = new ArrayList<>();
@@ -57,6 +60,18 @@ public class Table {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 
     public List<Column> getColumns() {

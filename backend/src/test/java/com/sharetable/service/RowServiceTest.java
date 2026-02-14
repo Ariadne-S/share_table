@@ -43,7 +43,7 @@ class RowServiceTest {
     @Test
     void updateCells_setsValue() {
         var request = new CreateTableRequest("Test", java.util.List.of(
-            new CreateTableRequest.ColumnInput("Name", "text", 0)
+            new CreateTableRequest.ColumnInput("Name", "text", 0, null)
         ));
         var table = tableService.createTable(request);
         var row = rowService.addRow(table.getShareToken()).orElseThrow();

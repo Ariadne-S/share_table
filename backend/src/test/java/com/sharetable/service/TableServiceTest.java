@@ -37,9 +37,9 @@ class TableServiceTest {
     @Test
     void createTable_withColumns_createsTableAndColumns() {
         var request = new CreateTableRequest("TV Shows", List.of(
-            new CreateTableRequest.ColumnInput("Show", "text", 0),
-            new CreateTableRequest.ColumnInput("Season", "number", 1),
-            new CreateTableRequest.ColumnInput("Watched", "boolean", 2)
+            new CreateTableRequest.ColumnInput("Show", "text", 0, null),
+            new CreateTableRequest.ColumnInput("Season", "number", 1, null),
+            new CreateTableRequest.ColumnInput("Watched", "string", 2, null)
         ));
 
         Table table = tableService.createTable(request);
@@ -47,7 +47,7 @@ class TableServiceTest {
         assertThat(table.getName()).isEqualTo("TV Shows");
         assertThat(table.getColumns()).hasSize(3);
         assertThat(table.getColumns().get(0).getName()).isEqualTo("Show");
-        assertThat(table.getColumns().get(0).getType()).isEqualTo("text");
+        assertThat(table.getColumns().get(0).getType()).isEqualTo("string");
         assertThat(table.getColumns().get(1).getName()).isEqualTo("Season");
         assertThat(table.getColumns().get(1).getType()).isEqualTo("number");
     }

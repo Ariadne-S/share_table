@@ -1,6 +1,9 @@
 package com.sharetable.domain;
 
+import com.sharetable.domain.converters.StringListConverter;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,13 +27,22 @@ public class Column {
     @jakarta.persistence.Column(name = "ord", nullable = false)
     private int order;
 
+    @jakarta.persistence.Column(name = "enum_values")
+    @Convert(converter = StringListConverter.class)
+    private List<String> enumValues = new ArrayList<>();
+
     protected Column() {}
 
     public Column(Table table, String name, String type, int order) {
+        this(table, name, type, order, List.of());
+    }
+
+    public Column(Table table, String name, String type, int order, List<String> enumValues) {
         this.table = table;
         this.name = name;
         this.type = type != null ? type : "text";
         this.order = order;
+        this.enumValues = enumValues != null ? new ArrayList<>(enumValues) : new ArrayList<>();
     }
 
     public UUID getId() {
@@ -63,5 +75,17 @@ public class Column {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public List<String> getEnumValues() {
+        return enumValues;
+    }
+
+    public void setEnumValues(List<String> enumValues) {
+        this.enumValues = enumValues != null ? new ArrayList<>(enumValues) : new ArrayList<>();
+    }
+
+    public boolean hasEnumConstraint() {
+        return enumValues != null && !enumValues.isEmpty();
     }
 }

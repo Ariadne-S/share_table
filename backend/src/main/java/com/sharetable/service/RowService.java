@@ -75,6 +75,7 @@ public class RowService {
                         .orElse(null);
 
                     if (column != null) {
+                        ColumnType.validateCellValue(column.getType(), value, column.getEnumValues());
                         var existingCell = row.getCells().stream()
                             .filter(c -> c.getColumn().getId().equals(columnId))
                             .findFirst();

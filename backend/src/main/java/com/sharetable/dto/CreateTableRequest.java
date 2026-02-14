@@ -18,6 +18,8 @@ public record CreateTableRequest(
         @Size(max = 50)
         String type,
 
-        Integer order
+        Integer order,
+
+        List<String> enumValues
     ) {}
 }

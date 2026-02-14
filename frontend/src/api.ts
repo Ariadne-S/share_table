@@ -50,17 +50,30 @@ export async function updateCells(shareToken: string, rowId: string, cells: Reco
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cells }),
   });
-  if (!res.ok) throw new Error(`Failed to update cells: ${res.statusText}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error ?? `Failed to update cells: ${res.statusText}`);
+  }
   return res.json();
 }
 
-export async function addColumn(shareToken: string, column: { name: string; type?: string; order?: number }): Promise<ColumnResponse> {
+export async function addColumn(shareToken: string, column: { name: string; type?: string; order?: number; enumValues?: string[] }): Promise<ColumnResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(column),
   });
   if (!res.ok) throw new Error(`Failed to add column: ${res.statusText}`);
+  return res.json();
+}
+
+export async function updateColumn(shareToken: string, columnId: string, column: { name?: string; type?: string; order?: number; enumValues?: string[] }): Promise<ColumnResponse> {
+  const res = await fetch(`${API_BASE}/tables/${shareToken}/columns/${columnId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(column),
+  });
+  if (!res.ok) throw new Error(`Failed to update column: ${res.statusText}`);
   return res.json();
 }
 

@@ -5,14 +5,17 @@ com/sharetable/dto/AddColumnRequest.class
 com/sharetable/config/WebConfig.class
 com/sharetable/dto/UpdateColumnRequest.class
 com/sharetable/domain/Cell$CellId.class
+com/sharetable/controller/ErrorHandler.class
 com/sharetable/dto/ColumnResponse.class
 com/sharetable/dto/CreateTableRequest.class
 com/sharetable/repository/RowRepository.class
+com/sharetable/domain/ColumnType.class
 com/sharetable/controller/ColumnController.class
 com/sharetable/domain/Row.class
 com/sharetable/dto/TableResponse.class
 com/sharetable/service/ColumnService.class
 com/sharetable/controller/TableController.class
+com/sharetable/domain/converters/StringListConverter$1.class
 com/sharetable/service/TableService.class
 com/sharetable/service/TableUpdateBroadcaster.class
 com/sharetable/controller/RowController.class
@@ -22,6 +25,7 @@ com/sharetable/ShareTableApplication.class
 com/sharetable/domain/Cell.class
 com/sharetable/service/RowService.class
 com/sharetable/dto/TableSummaryResponse.class
+com/sharetable/domain/converters/StringListConverter.class
 com/sharetable/domain/Table.class
 com/sharetable/dto/UpdateCellsRequest.class
 com/sharetable/dto/RowResponse.class
