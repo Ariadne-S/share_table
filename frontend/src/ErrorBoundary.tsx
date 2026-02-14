@@ -1,4 +1,5 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -23,11 +24,16 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError && this.state.error) {
       return (
-        <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#e74c3c', background: '#1a1a1a', minHeight: '100vh' }}>
-          <h1>Something went wrong</h1>
-          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{this.state.error.toString()}</pre>
-          <p>Check the browser console (F12) for details.</p>
-          <button onClick={() => window.location.reload()}>Reload</button>
+        <div className="p-8 font-sans text-red-500 bg-neutral-900 min-h-screen">
+          <h1 className="text-2xl font-semibold mb-4">Something went wrong</h1>
+          <pre className="whitespace-pre-wrap break-words mb-4">{this.state.error.toString()}</pre>
+          <p className="mb-4">Check the browser console (F12) for details.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-lg border border-[#646cff] bg-neutral-800 hover:border-[#535bf2] cursor-pointer"
+          >
+            Reload
+          </button>
         </div>
       );
     }

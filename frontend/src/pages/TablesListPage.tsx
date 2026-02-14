@@ -44,31 +44,52 @@ export default function TablesListPage() {
     }
   }
 
-  if (loading) return <div className="page">Loading...</div>;
-  if (error) return <div className="page"><p className="error">{error}</p></div>;
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+        Loading...
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="page">
-      <nav>
-        <Link to="/">ShareTable</Link>
+    <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+      <nav className="mb-4">
+        <Link to="/" className="text-sm font-medium text-[#646cff] hover:text-[#535bf2]">
+          ShareTable
+        </Link>
         {' · '}
-        <Link to="/create">Create Table</Link>
+        <Link to="/create" className="text-sm font-medium text-[#646cff] hover:text-[#535bf2]">
+          Create Table
+        </Link>
       </nav>
-      <h1>My Tables</h1>
-      <p>Tables you&apos;ve created. Click to open and collaborate.</p>
+      <h1 className="text-3xl font-semibold mb-2">My Tables</h1>
+      <p className="mb-4 text-neutral-400">Tables you&apos;ve created. Click to open and collaborate.</p>
       {tables.length === 0 ? (
-        <p className="empty-message">No tables yet. <Link to="/create">Create your first table</Link>.</p>
+        <p className="mt-4 text-neutral-400">
+          No tables yet. <Link to="/create" className="text-[#646cff] hover:text-[#535bf2]">Create your first table</Link>.
+        </p>
       ) : (
-        <ul className="tables-list">
+        <ul className="list-none p-0 m-0">
           {tables.map((t) => (
-            <li key={t.id} className="table-list-item">
-              <Link to={`/t/${t.shareToken}`} className="table-link">
-                <span className="table-name">{t.name}</span>
-                <span className="table-date">{formatDate(t.createdAt)}</span>
+            <li key={t.id} className="flex items-center gap-2 mb-2">
+              <Link
+                to={`/t/${t.shareToken}`}
+                className="flex-1 flex justify-between items-center px-4 py-3 rounded-lg border border-neutral-600 no-underline text-inherit hover:bg-[#646cff]/10 hover:border-[#646cff] transition-colors"
+              >
+                <span className="font-medium">{t.name}</span>
+                <span className="text-sm text-neutral-400">{formatDate(t.createdAt)}</span>
               </Link>
               <button
                 type="button"
-                className="delete-btn"
+                className="shrink-0 py-1 px-2 text-lg leading-none bg-transparent text-neutral-400 hover:text-red-500 hover:border-red-500 rounded"
                 onClick={(e) => handleDelete(e, t.shareToken)}
                 disabled={deletingId === t.shareToken}
                 title="Delete table"

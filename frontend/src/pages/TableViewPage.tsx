@@ -11,6 +11,8 @@ function getCellColumnType(col: { type?: string; enumValues?: string[] }): strin
   return COLUMN_TYPES.includes(t as typeof COLUMN_TYPES[number]) ? t : 'string';
 }
 
+const inputBase = 'w-full min-w-[80px] py-1 px-2 rounded border border-[#646cff] bg-neutral-800 text-inherit';
+
 export default function TableViewPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const navigate = useNavigate();
@@ -168,26 +170,48 @@ export default function TableViewPage() {
     }
   }
 
-  if (loading) return <div className="page">Loading...</div>;
-  if (error) return <div className="page"><p className="error">{error}</p></div>;
-  if (!table) return <div className="page">Not found</div>;
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+        Loading...
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+  if (!table) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+        Not found
+      </div>
+    );
+  }
 
   function copyShareLink() {
     navigator.clipboard.writeText(window.location.href);
   }
 
   return (
-    <div className="page">
-      <nav>
-        <Link to="/">My Tables</Link>
+    <div className="max-w-4xl mx-auto p-8 min-h-screen bg-neutral-900 text-neutral-100">
+      <nav className="mb-4">
+        <Link to="/" className="text-sm font-medium text-[#646cff] hover:text-[#535bf2]">
+          My Tables
+        </Link>
         {' · '}
-        <Link to="/create">Create Table</Link>
+        <Link to="/create" className="text-sm font-medium text-[#646cff] hover:text-[#535bf2]">
+          Create Table
+        </Link>
       </nav>
-      <div className="table-header">
-        <h1>{table.name}</h1>
+      <div className="flex items-center justify-between gap-4 mb-2">
+        <h1 className="text-3xl font-semibold m-0">{table.name}</h1>
         <button
           type="button"
-          className="delete-btn delete-table-btn"
+          className="text-sm py-1.5 px-3 rounded bg-transparent text-neutral-400 hover:text-red-500 hover:border-red-500 border border-transparent disabled:opacity-50"
           onClick={handleDeleteTable}
           disabled={mutating}
           title="Delete table"
@@ -195,26 +219,40 @@ export default function TableViewPage() {
           Delete table
         </button>
       </div>
-      <p className="share-link">
-        Share: <a href={window.location.href}>{window.location.href}</a>
+      <p className="text-sm text-neutral-400 mb-4 break-all">
+        Share: <a href={window.location.href} className="text-[#646cff] hover:text-[#535bf2]">{window.location.href}</a>
         {' '}
-        <button type="button" className="copy-btn" onClick={copyShareLink} title="Copy link">Copy</button>
+        <button
+          type="button"
+          className="text-sm py-1 px-2 ml-2 rounded border border-[#646cff]"
+          onClick={copyShareLink}
+          title="Copy link"
+        >
+          Copy
+        </button>
       </p>
-      {error && <p className="error">{error}</p>}
-      <div className="table-actions">
-        <button onClick={handleAddRow} disabled={mutating}>{mutating ? '...' : 'Add Row'}</button>
-        <div className="add-column add-column-with-type">
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <div className="flex gap-4 items-center mb-4 flex-wrap">
+        <button
+          onClick={handleAddRow}
+          disabled={mutating}
+          className="px-4 py-2 rounded-lg border border-transparent font-medium bg-neutral-800 hover:border-[#646cff] cursor-pointer disabled:opacity-50"
+        >
+          {mutating ? '...' : 'Add Row'}
+        </button>
+        <div className="flex gap-2 items-center">
           <input
             type="text"
             placeholder="Column name"
             value={newColumnName}
             onChange={(e) => setNewColumnName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
+            className="w-40 px-4 py-2 rounded-lg border border-[#646cff] bg-neutral-800 text-sm"
           />
           <select
             value={newColumnType}
             onChange={(e) => setNewColumnType(e.target.value)}
-            className="column-type-select"
+            className="w-24 px-2 py-2 rounded-lg border border-[#646cff] bg-neutral-800 text-inherit text-sm"
             title="Column type"
           >
             {COLUMN_TYPES.map((t) => (
@@ -228,31 +266,38 @@ export default function TableViewPage() {
               value={newColumnEnumValues}
               onChange={(e) => setNewColumnEnumValues(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
-              className="enum-values-input"
+              className="w-52 px-4 py-2 rounded-lg border border-[#646cff] bg-neutral-800 text-sm"
             />
           )}
-          <button onClick={handleAddColumn} disabled={!newColumnName.trim() || mutating}>Add Column</button>
+          <button
+            onClick={handleAddColumn}
+            disabled={!newColumnName.trim() || mutating}
+            className="px-4 py-2 rounded-lg border border-transparent font-medium bg-neutral-800 hover:border-[#646cff] cursor-pointer disabled:opacity-50"
+          >
+            Add Column
+          </button>
         </div>
       </div>
-      <div className="table-container">
-        <table>
+      <div className="overflow-x-auto mt-4">
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
               {table.columns.map((col) => (
-                <th key={col.id} className="column-header">
+                <th key={col.id} className="relative min-w-[120px] border border-neutral-600 px-3 py-2 text-left bg-neutral-800 font-semibold">
                   {editingColumnId === col.id ? (
-                    <div className="column-edit-form">
+                    <div className="flex flex-col gap-1">
                       <input
                         type="text"
                         value={editColumnName}
                         onChange={(e) => setEditColumnName(e.target.value)}
                         placeholder="Name"
                         onKeyDown={(e) => e.key === 'Enter' && handleUpdateColumn()}
+                        className="py-1 px-2 rounded border border-[#646cff] bg-neutral-900 text-sm"
                       />
                       <select
                         value={editColumnType}
                         onChange={(e) => setEditColumnType(e.target.value)}
-                        className="column-type-select"
+                        className="py-1 px-2 rounded border border-[#646cff] bg-neutral-900 text-sm"
                       >
                         {COLUMN_TYPES.map((t) => (
                           <option key={t} value={t}>{t}</option>
@@ -265,19 +310,37 @@ export default function TableViewPage() {
                           onChange={(e) => setEditColumnEnumValues(e.target.value)}
                           placeholder="Enum (comma-separated)"
                           onKeyDown={(e) => e.key === 'Enter' && handleUpdateColumn()}
+                          className="py-1 px-2 rounded border border-[#646cff] bg-neutral-900 text-sm"
                         />
                       )}
-                      <button type="button" onClick={handleUpdateColumn} disabled={mutating}>Save</button>
-                      <button type="button" className="cancel-btn" onClick={cancelEditColumn}>Cancel</button>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={handleUpdateColumn}
+                          disabled={mutating}
+                          className="px-2 py-1 text-sm rounded border border-[#646cff] bg-neutral-800"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditColumn}
+                          className="px-2 py-1 text-sm rounded border border-neutral-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <>
                       <span>{col.name}</span>
-                      <span className="column-type-badge">{getCellColumnType(col)}</span>
-                      <div className="column-actions">
+                      <span className="block text-[0.7rem] font-normal text-neutral-400 mt-0.5">
+                        {getCellColumnType(col)}
+                      </span>
+                      <div className="absolute top-1 right-1 flex gap-0.5">
                         <button
                           type="button"
-                          className="icon-btn"
+                          className="p-1 text-sm leading-none bg-transparent text-neutral-400 hover:text-[#646cff] hover:bg-[#646cff]/15 rounded"
                           onClick={() => startEditColumn(col)}
                           title="Edit column"
                         >
@@ -285,7 +348,7 @@ export default function TableViewPage() {
                         </button>
                         <button
                           type="button"
-                          className="icon-btn delete-btn"
+                          className="p-1 text-sm leading-none bg-transparent text-neutral-400 hover:text-red-500 rounded disabled:opacity-50"
                           onClick={() => handleDeleteColumn(col.id)}
                           disabled={mutating}
                           title="Delete column"
@@ -297,61 +360,35 @@ export default function TableViewPage() {
                   )}
                 </th>
               ))}
-              <th></th>
+              <th className="border border-neutral-600 px-3 py-2 bg-neutral-800" />
             </tr>
           </thead>
           <tbody>
             {table.rows.map((row) => (
-              <tr key={row.id}>
+              <tr key={row.id} className="hover:bg-[#646cff]/5">
                 {table.columns.map((col) => {
                   const isEditing = editingCell?.rowId === row.id && editingCell?.columnId === col.id;
                   const value = row.cells[col.id] ?? '';
                   const colType = getCellColumnType(col);
                   const isEnum = colType === 'enum' && col.enumValues && col.enumValues.length > 0;
                   return (
-                    <td key={col.id}>
+                    <td key={col.id} className="border border-neutral-600 px-3 py-2">
                       {isEditing ? (
                         isEnum ? (
                           <select
                             autoFocus
                             value={value}
                             onChange={(e) => handleCellSave(row.id, col.id, e.target.value)}
-                            className="cell-select"
+                            className={`${inputBase} cursor-pointer`}
                           >
                             <option value="">—</option>
                             {col.enumValues!.map((opt) => (
                               <option key={opt} value={opt}>{opt}</option>
                             ))}
                           </select>
-                        ) : colType === 'number' ? (
-                          <input
-                            type="number"
-                            defaultValue={value}
-                            autoFocus
-                            onBlur={(e) => handleCellSave(row.id, col.id, e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleCellSave(row.id, col.id, (e.target as HTMLInputElement).value);
-                              }
-                            }}
-                            className="cell-input"
-                          />
-                        ) : colType === 'date' ? (
-                          <input
-                            type="date"
-                            defaultValue={value}
-                            autoFocus
-                            onBlur={(e) => handleCellSave(row.id, col.id, e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleCellSave(row.id, col.id, (e.target as HTMLInputElement).value);
-                              }
-                            }}
-                            className="cell-input"
-                          />
                         ) : (
                           <input
-                            type="text"
+                            type={colType === 'number' ? 'number' : colType === 'date' ? 'date' : 'text'}
                             defaultValue={value}
                             autoFocus
                             onBlur={(e) => handleCellSave(row.id, col.id, e.target.value)}
@@ -360,12 +397,12 @@ export default function TableViewPage() {
                                 handleCellSave(row.id, col.id, (e.target as HTMLInputElement).value);
                               }
                             }}
-                            className="cell-input"
+                            className={inputBase}
                           />
                         )
                       ) : (
                         <span
-                          className="editable-cell"
+                          className="block cursor-pointer min-h-[1.5em] py-0.5 px-1 hover:bg-[#646cff]/15 rounded"
                           onClick={() => setEditingCell({ rowId: row.id, columnId: col.id })}
                         >
                           {value || '\u00a0'}
@@ -374,9 +411,9 @@ export default function TableViewPage() {
                     </td>
                   );
                 })}
-                <td>
+                <td className="border border-neutral-600 px-3 py-2">
                   <button
-                    className="delete-btn"
+                    className="py-1 px-2 text-lg leading-none bg-transparent text-neutral-400 hover:text-red-500 hover:border-red-500 rounded border border-transparent"
                     onClick={() => handleDeleteRow(row.id)}
                     title="Delete row"
                   >
@@ -387,7 +424,12 @@ export default function TableViewPage() {
             ))}
             {table.rows.length === 0 && (
               <tr>
-                <td colSpan={(table.columns.length || 1) + 1}>No rows yet. Click "Add Row" to start.</td>
+                <td
+                  colSpan={(table.columns.length || 1) + 1}
+                  className="border border-neutral-600 px-3 py-2 text-neutral-400"
+                >
+                  No rows yet. Click &quot;Add Row&quot; to start.
+                </td>
               </tr>
             )}
           </tbody>
