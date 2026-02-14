@@ -93,7 +93,7 @@ createdb sharetable
 
 ## Features
 
-- Create tables with custom columns
+- Create tables with custom columns (string, number, date, datetime, time, boolean, url, email, currency, enum)
 - Add/edit/delete rows and cells
 - Share via link (no auth required)
 - Real-time updates when multiple users edit

@@ -17,7 +17,18 @@ import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import { useTableWebSocket } from '../hooks/useTableWebSocket';
 import type { ColumnResponse, RowResponse, TableResponse } from '../types';
 
-const COLUMN_TYPES = ['string', 'number', 'date', 'enum'] as const;
+const COLUMN_TYPES = [
+  'string',
+  'number',
+  'date',
+  'datetime',
+  'time',
+  'boolean',
+  'url',
+  'email',
+  'currency',
+  'enum',
+] as const;
 
 function getCellColumnType(col: { type?: string; enumValues?: string[] }): string {
   const t = col.type || 'string';
@@ -618,11 +629,40 @@ export default function TableViewPage() {
                               </option>
                             ))}
                           </select>
+                        ) : colType === 'boolean' ? (
+                          <select
+                            autoFocus
+                            value={cellValue}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setCellValue(v);
+                              handleCellSave(row.id, col.id, v, true);
+                            }}
+                            onBlur={() => setEditingCell(null)}
+                            className={`${inputBase} cursor-pointer`}
+                          >
+                            <option value="">—</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </select>
                         ) : (
                           <input
                             type={
-                              colType === 'number' ? 'number' : colType === 'date' ? 'date' : 'text'
+                              colType === 'number' || colType === 'currency'
+                                ? 'number'
+                                : colType === 'date'
+                                  ? 'date'
+                                  : colType === 'datetime'
+                                    ? 'datetime-local'
+                                    : colType === 'time'
+                                      ? 'time'
+                                      : colType === 'url'
+                                        ? 'url'
+                                        : colType === 'email'
+                                          ? 'email'
+                                          : 'text'
                             }
+                            step={colType === 'currency' ? '0.01' : undefined}
                             value={cellValue}
                             onChange={(e) => {
                               const v = e.target.value;
@@ -648,9 +688,50 @@ export default function TableViewPage() {
                       ) : (
                         <span
                           className="block cursor-pointer min-h-[1.5em] py-0.5 px-1 hover:bg-accent/15 rounded text-fg"
-                          onClick={() => startEditCell(row, col)}
+                          onClick={() =>
+                            colType === 'boolean'
+                              ? handleCellSave(
+                                  row.id,
+                                  col.id,
+                                  value === 'true' || value === 'yes' || value === '1'
+                                    ? 'false'
+                                    : 'true',
+                                  true
+                                )
+                              : startEditCell(row, col)
+                          }
                         >
-                          {value || '\u00a0'}
+                          {colType === 'boolean'
+                            ? value === 'true' || value === 'yes' || value === '1'
+                              ? '✓'
+                              : value === 'false' || value === 'no' || value === '0'
+                                ? '☐'
+                                : value || '\u00a0'
+                            : colType === 'url' && value.trim()
+                              ? (() => {
+                                  const href = value.startsWith('http')
+                                    ? value
+                                    : `https://${value}`;
+                                  return (
+                                    <a
+                                      href={href}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-accent hover:text-accent-hover underline"
+                                    >
+                                      {value}
+                                    </a>
+                                  );
+                                })()
+                              : colType === 'currency' && value.trim()
+                                ? (() => {
+                                    const n = Number.parseFloat(value);
+                                    return Number.isNaN(n)
+                                      ? value
+                                      : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                  })()
+                                : value || '\u00a0'}
                         </span>
                       )}
                     </td>
