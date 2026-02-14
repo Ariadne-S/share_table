@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getTable, addRow, deleteRow, updateCells, addColumn } from '../api';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { getTable, addRow, deleteRow, updateCells, addColumn, deleteTable } from '../api';
 import { useTableWebSocket } from '../hooks/useTableWebSocket';
 import type { TableResponse } from '../types';
 
 export default function TableViewPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
+  const navigate = useNavigate();
   const [table, setTable] = useState<TableResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +85,21 @@ export default function TableViewPage() {
     }
   }
 
+  async function handleDeleteTable() {
+    if (!shareToken) return;
+    if (!confirm('Delete this table? It can be recovered from the database.')) return;
+    setMutating(true);
+    setError(null);
+    try {
+      await deleteTable(shareToken);
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete table');
+    } finally {
+      setMutating(false);
+    }
+  }
+
   if (loading) return <div className="page">Loading...</div>;
   if (error) return <div className="page"><p className="error">{error}</p></div>;
   if (!table) return <div className="page">Not found</div>;
@@ -94,8 +110,23 @@ export default function TableViewPage() {
 
   return (
     <div className="page">
-      <nav><Link to="/">ShareTable</Link></nav>
-      <h1>{table.name}</h1>
+      <nav>
+        <Link to="/">My Tables</Link>
+        {' · '}
+        <Link to="/create">Create Table</Link>
+      </nav>
+      <div className="table-header">
+        <h1>{table.name}</h1>
+        <button
+          type="button"
+          className="delete-btn delete-table-btn"
+          onClick={handleDeleteTable}
+          disabled={mutating}
+          title="Delete table"
+        >
+          Delete table
+        </button>
+      </div>
       <p className="share-link">
         Share: <a href={window.location.href}>{window.location.href}</a>
         {' '}

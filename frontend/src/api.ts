@@ -1,6 +1,12 @@
-import type { ColumnResponse, RowResponse, TableResponse } from './types';
+import type { ColumnResponse, RowResponse, TableResponse, TableSummaryResponse } from './types';
 
 const API_BASE = import.meta.env.DEV ? '/api' : '/api';
+
+export async function getTables(): Promise<TableSummaryResponse[]> {
+  const res = await fetch(`${API_BASE}/tables`);
+  if (!res.ok) throw new Error('Failed to fetch tables');
+  return res.json();
+}
 
 export async function createTable(request: { name: string; columns?: { name: string; type?: string; order?: number }[] }): Promise<TableResponse> {
   const res = await fetch(`${API_BASE}/tables`, {
@@ -16,6 +22,11 @@ export async function getTable(shareToken: string): Promise<TableResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}`);
   if (!res.ok) throw new Error(`Failed to fetch table: ${res.statusText}`);
   return res.json();
+}
+
+export async function deleteTable(shareToken: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/tables/${shareToken}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`Failed to delete table: ${res.statusText}`);
 }
 
 export async function addRow(shareToken: string): Promise<RowResponse> {

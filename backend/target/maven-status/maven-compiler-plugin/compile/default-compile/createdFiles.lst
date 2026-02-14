@@ -21,6 +21,7 @@ com/sharetable/repository/TableRepository.class
 com/sharetable/ShareTableApplication.class
 com/sharetable/domain/Cell.class
 com/sharetable/service/RowService.class
+com/sharetable/dto/TableSummaryResponse.class
 com/sharetable/domain/Table.class
 com/sharetable/dto/UpdateCellsRequest.class
 com/sharetable/dto/RowResponse.class

@@ -3,10 +3,13 @@ package com.sharetable.service;
 import com.sharetable.domain.Column;
 import com.sharetable.domain.Table;
 import com.sharetable.dto.CreateTableRequest;
+import com.sharetable.dto.TableSummaryResponse;
 import com.sharetable.repository.TableRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,5 +47,23 @@ public class TableService {
     public Optional<Table> findByShareToken(UUID shareToken) {
         // Fetch columns only in query; rows loaded lazily to avoid Hibernate MultipleBagFetchException
         return tableRepository.findByShareTokenWithColumns(shareToken);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TableSummaryResponse> findAllSummaries() {
+        return tableRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc().stream()
+            .map(TableSummaryResponse::from)
+            .toList();
+    }
+
+    @Transactional
+    public boolean softDeleteByShareToken(UUID shareToken) {
+        return tableRepository.findByShareTokenWithColumns(shareToken)
+            .map(table -> {
+                table.setDeletedAt(Instant.now());
+                tableRepository.save(table);
+                return true;
+            })
+            .orElse(false);
     }
 }

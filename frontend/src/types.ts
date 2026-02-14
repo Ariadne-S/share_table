@@ -20,6 +20,13 @@ export interface TableResponse {
   rows: RowResponse[];
 }
 
+export interface TableSummaryResponse {
+  id: string;
+  shareToken: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface CreateTableRequest {
   name: string;
   columns?: { name: string; type?: string; order?: number }[];

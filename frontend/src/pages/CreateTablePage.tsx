@@ -15,7 +15,7 @@ export default function CreateTablePage() {
     setError(null);
     try {
       const table = await createTable({ name: name.trim() });
-      navigate(`/t/${table.shareToken}`);
+      navigate(`/t/${table.shareToken}`, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create table');
     } finally {
@@ -25,8 +25,12 @@ export default function CreateTablePage() {
 
   return (
     <div className="page">
-      <nav><Link to="/">ShareTable</Link></nav>
-      <h1>ShareTable</h1>
+      <nav>
+        <Link to="/">ShareTable</Link>
+        {' · '}
+        <Link to="/create">Create Table</Link>
+      </nav>
+      <h1>Create Table</h1>
       <p>Create a new shared table to collaborate with others.</p>
       <form onSubmit={handleSubmit}>
         <input

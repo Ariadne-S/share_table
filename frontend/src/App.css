@@ -103,6 +103,87 @@ nav a {
   word-break: break-all;
 }
 
+.empty-message {
+  color: #888;
+  margin-top: 1rem;
+}
+
+.tables-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tables-list li {
+  margin-bottom: 0.5rem;
+}
+
+.table-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-list-item .table-link {
+  flex: 1;
+}
+
+.table-list-item .delete-btn {
+  flex-shrink: 0;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.table-header h1 {
+  margin: 0;
+}
+
+.delete-table-btn {
+  font-size: 0.85em;
+  padding: 0.4em 0.8em;
+}
+
+.table-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #444;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.table-link:hover {
+  background-color: rgba(100, 108, 255, 0.1);
+  border-color: #646cff;
+}
+
+.table-name {
+  font-weight: 500;
+}
+
+.table-date {
+  font-size: 0.9em;
+  color: #888;
+}
+
+@media (prefers-color-scheme: light) {
+  .table-link {
+    border-color: #ddd;
+  }
+  .table-link:hover {
+    background-color: rgba(100, 108, 255, 0.08);
+  }
+}
+
 .table-container {
   overflow-x: auto;
   margin-top: 1rem;

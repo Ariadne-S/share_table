@@ -3,12 +3,14 @@ package com.sharetable.controller;
 import com.sharetable.domain.Table;
 import com.sharetable.dto.CreateTableRequest;
 import com.sharetable.dto.TableResponse;
+import com.sharetable.dto.TableSummaryResponse;
 import com.sharetable.service.TableService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,6 +21,11 @@ public class TableController {
 
     public TableController(TableService tableService) {
         this.tableService = tableService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TableSummaryResponse>> listTables() {
+        return ResponseEntity.ok(tableService.findAllSummaries());
     }
 
     @PostMapping
@@ -32,5 +39,12 @@ public class TableController {
         return tableService.findByShareToken(shareToken)
             .map(table -> ResponseEntity.ok(TableResponse.from(table)))
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{shareToken}")
+    public ResponseEntity<Void> deleteTable(@PathVariable UUID shareToken) {
+        return tableService.softDeleteByShareToken(shareToken)
+            ? ResponseEntity.noContent().build()
+            : ResponseEntity.notFound().build();
     }
 }
