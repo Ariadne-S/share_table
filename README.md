@@ -2,6 +2,8 @@
 
 A multi-user collaborative table application for tracking shopping lists, TV shows, to-do lists, and more. Share a link with others to edit in real time. No authentication required.
 
+**License:** MIT – see [LICENSE](LICENSE).
+
 ## Tech Stack
 
 - **Backend**: Java 17, Spring Boot 3.2, PostgreSQL, Flyway, STOMP/WebSocket
