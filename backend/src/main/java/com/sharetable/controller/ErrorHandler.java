@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 
+/**
+ * Global exception handler. Maps IllegalArgumentException to 400 Bad Request.
+ */
 @RestControllerAdvice
 public class ErrorHandler {
 

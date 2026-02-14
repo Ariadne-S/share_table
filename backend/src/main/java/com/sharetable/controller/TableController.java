@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST controller for table CRUD: list, create, get by share token, soft delete.
+ */
 @RestController
 @RequestMapping("/tables")
 public class TableController {

@@ -3,6 +3,10 @@ package com.sharetable.domain;
 import jakarta.persistence.*;
 import java.util.UUID;
 
+/**
+ * A single cell: the value at the intersection of a row and column. Uses a composite
+ * primary key (row, column).
+ */
 @Entity
 @jakarta.persistence.Table(name = "cell")
 @IdClass(Cell.CellId.class)

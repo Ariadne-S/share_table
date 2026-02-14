@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * REST controller for row and cell operations: add row, delete row, update cells.
+ */
 @RestController
 @RequestMapping("/tables/{shareToken}/rows")
 public class RowController {

@@ -7,6 +7,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+/**
+ * Broadcasts table updates to WebSocket subscribers. Sends full TableResponse
+ * to /topic/tables/{shareToken} so all connected clients receive real-time updates.
+ */
 @Service
 public class TableUpdateBroadcaster {
 

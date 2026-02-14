@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * A row in a table. Has an ordered position and contains cells (one per column).
+ */
 @Entity
 @jakarta.persistence.Table(name = "table_row")
 public class Row {

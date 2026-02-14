@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * Supported column types with validation rules. Used to validate cell values
+ * when updating via the API.
+ */
 public enum ColumnType {
     STRING,
     NUMBER,
@@ -27,6 +31,10 @@ public enum ColumnType {
     private static final Pattern EMAIL_PATTERN =
         Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
+    /**
+     * Normalizes a type string to a valid column type (string, number, date, etc.).
+     * Returns "string" for null, blank, or unknown types.
+     */
     public static String normalize(String type) {
         if (type == null || type.isBlank()) return "string";
         var lower = type.trim().toLowerCase();
@@ -34,6 +42,10 @@ public enum ColumnType {
         return VALID_TYPES.contains(lower) ? lower : "string";
     }
 
+    /**
+     * Validates a cell value against the column type. Throws IllegalArgumentException
+     * if the value is invalid (e.g. non-numeric for number, invalid date format, etc.).
+     */
     public static void validateCellValue(String type, String value, List<String> enumValues) {
         if (value == null || value.isBlank()) return;
 

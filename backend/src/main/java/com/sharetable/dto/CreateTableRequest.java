@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
+/** Request body for creating a new table with optional initial columns. */
 public record CreateTableRequest(
     @NotBlank @Size(max = 255)
     String name,

@@ -14,6 +14,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Service for column operations: add, update, reorder, delete. Broadcasts changes via WebSocket.
+ */
 @Service
 public class ColumnService {
 

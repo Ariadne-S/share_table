@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * A shared table that can be edited collaboratively via a shareable link.
+ * Contains ordered columns (schema) and rows (data). Supports soft delete.
+ */
 @Entity
 @jakarta.persistence.Table(name = "share_table")
 public class Table {

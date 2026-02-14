@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * A column in a table. Defines the schema: name, type, display order, and optionally
+ * enum values for constrained choice columns.
+ */
 @Entity
 @jakarta.persistence.Table(name = "table_column")
 public class Column {

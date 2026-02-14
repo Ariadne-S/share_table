@@ -10,6 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service for row and cell operations: add row, delete row, update cells.
+ * Validates cell values against column type. Broadcasts changes via WebSocket.
+ */
 @Service
 public class RowService {
 

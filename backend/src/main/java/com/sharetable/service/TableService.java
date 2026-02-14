@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service for table lifecycle: create, find by share token, list summaries, soft delete.
+ */
 @Service
 public class TableService {
 

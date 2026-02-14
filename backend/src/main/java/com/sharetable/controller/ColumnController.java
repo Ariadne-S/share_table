@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * REST controller for column operations: add, reorder, update, delete.
+ */
 @RestController
 @RequestMapping("/tables/{shareToken}/columns")
 public class ColumnController {
