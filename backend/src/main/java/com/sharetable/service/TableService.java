@@ -61,12 +61,15 @@ public class TableService {
     }
 
     // Default columns: Created At, Modified At, Modified By (auto-populated on row add/edit)
-    table.getColumns().add(
-        new Column(table, "Created At", "datetime", order++, List.of(), SYS_CREATED_AT));
-    table.getColumns().add(
-        new Column(table, "Modified At", "datetime", order++, List.of(), SYS_MODIFIED_AT));
-    table.getColumns().add(
-        new Column(table, "Modified By", "string", order, List.of(), SYS_MODIFIED_BY));
+    table
+        .getColumns()
+        .add(new Column(table, "Created At", "datetime", order++, List.of(), SYS_CREATED_AT));
+    table
+        .getColumns()
+        .add(new Column(table, "Modified At", "datetime", order++, List.of(), SYS_MODIFIED_AT));
+    table
+        .getColumns()
+        .add(new Column(table, "Modified By", "string", order, List.of(), SYS_MODIFIED_BY));
 
     var saved = tableRepository.saveAndFlush(table);
     broadcaster.broadcastTableUpdate(saved.getShareToken(), saved);

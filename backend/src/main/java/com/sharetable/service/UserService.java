@@ -30,7 +30,9 @@ public class UserService {
         .findById(id)
         .map(
             u -> {
-              if (displayName != null && !displayName.isBlank() && !displayName.equals(u.getDisplayName())) {
+              if (displayName != null
+                  && !displayName.isBlank()
+                  && !displayName.equals(u.getDisplayName())) {
                 u.setDisplayName(displayName);
                 userRepository.save(u);
               }

@@ -11,11 +11,12 @@ import {
   deleteTable,
   reorderColumns,
 } from '../api';
+import { CollaboratorPresence } from '../components/CollaboratorPresence';
 import { TableViewSkeleton } from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
 import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import { useTableWebSocket } from '../hooks/useTableWebSocket';
-import type { ColumnResponse, RowResponse, TableResponse } from '../types';
+import type { ColumnResponse, PresenceUpdate, RowResponse, TableResponse } from '../types';
 
 const COLUMN_TYPES = [
   'string',
@@ -79,6 +80,7 @@ export default function TableViewPage() {
   const [mutating, setMutating] = useState(false);
   const [draggedColId, setDraggedColId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<string | null>(null);
+  const [presence, setPresence] = useState<PresenceUpdate | null>(null);
 
   const fetchTable = useCallback(() => {
     if (!shareToken) return;
@@ -94,7 +96,15 @@ export default function TableViewPage() {
     setTable(updated);
   }, []);
 
-  useTableWebSocket(shareToken ?? '', handleTableUpdate);
+  const { connectionState } = useTableWebSocket(shareToken ?? '', handleTableUpdate, {
+    onPresence: setPresence,
+  });
+
+  useEffect(() => {
+    if (connectionState === 'error') {
+      toast.showToast('Connection lost. Reconnecting…', { duration: 5000 });
+    }
+  }, [connectionState, toast]);
 
   const performCellSave = useCallback(
     async (rowId: string, columnId: string, value: string, closeEditor: boolean) => {
@@ -104,11 +114,13 @@ export default function TableViewPage() {
         await updateCells(shareToken, rowId, { [columnId]: value });
         fetchTable();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update');
+        const msg = err instanceof Error ? err.message : 'Failed to update';
+        setError(msg);
+        toast.showToast(msg, { duration: 5000 });
         if (closeEditor) setEditingCell({ rowId, columnId });
       }
     },
-    [shareToken, fetchTable]
+    [shareToken, fetchTable, toast]
   );
 
   const debouncedCellSave = useDebouncedCallback(
@@ -137,11 +149,13 @@ export default function TableViewPage() {
       await addRow(shareToken);
       fetchTable();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add row');
+      const msg = err instanceof Error ? err.message : 'Failed to add row';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
-  }, [shareToken, fetchTable]);
+  }, [shareToken, fetchTable, toast]);
 
   async function handleDeleteRow(row: RowResponse) {
     if (!shareToken || !table) return;
@@ -168,7 +182,9 @@ export default function TableViewPage() {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete row');
+      const msg = err instanceof Error ? err.message : 'Failed to delete row';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
@@ -193,7 +209,9 @@ export default function TableViewPage() {
       setNewColumnEnumValues('');
       fetchTable();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add column');
+      const msg = err instanceof Error ? err.message : 'Failed to add column';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
@@ -233,7 +251,9 @@ export default function TableViewPage() {
       setEditingColumnId(null);
       fetchTable();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update column');
+      const msg = err instanceof Error ? err.message : 'Failed to update column';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
@@ -264,7 +284,9 @@ export default function TableViewPage() {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete column');
+      const msg = err instanceof Error ? err.message : 'Failed to delete column';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
@@ -285,7 +307,9 @@ export default function TableViewPage() {
         return { ...prev, columns: sorted };
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reorder columns');
+      const msg = err instanceof Error ? err.message : 'Failed to reorder columns';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
@@ -300,7 +324,9 @@ export default function TableViewPage() {
       await deleteTable(shareToken);
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete table');
+      const msg = err instanceof Error ? err.message : 'Failed to delete table';
+      setError(msg);
+      toast.showToast(msg, { duration: 5000 });
     } finally {
       setMutating(false);
     }
@@ -408,6 +434,8 @@ export default function TableViewPage() {
         <a href={window.location.href} className="text-accent hover:text-accent-hover">
           {window.location.href}
         </a>{' '}
+        <span className="mx-2">·</span>
+        <CollaboratorPresence presence={presence} connectionState={connectionState} />
         <button
           type="button"
           className="text-sm py-1 px-2 ml-2 rounded border border-accent"
@@ -475,9 +503,9 @@ export default function TableViewPage() {
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto mt-4">
+      <div className="overflow-auto max-h-[70vh] mt-4">
         <table className="w-full border-collapse text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10 bg-input border-b border-border shadow-sm">
             <tr>
               {cols.map((col) => (
                 <th
@@ -695,9 +723,7 @@ export default function TableViewPage() {
                                     input.value.slice(0, start) + ' ' + input.value.slice(end);
                                   setCellValue(newValue);
                                   handleCellSave(row.id, col.id, newValue);
-                                  setTimeout(() =>
-                                    input.setSelectionRange(start + 1, start + 1)
-                                  );
+                                  setTimeout(() => input.setSelectionRange(start + 1, start + 1));
                                 }
                               }
                             }}
@@ -759,9 +785,10 @@ export default function TableViewPage() {
                 })}
                 <td className="border border-border px-3 py-2">
                   <button
-                    className="py-1 px-2 text-lg leading-none bg-transparent text-muted hover:text-red-500 hover:border-red-500 rounded border border-transparent"
+                    className="py-1 px-2 text-lg leading-none bg-transparent text-muted hover:text-red-500 hover:border-red-500 rounded border border-transparent disabled:opacity-50"
                     onClick={() => handleDeleteRow(row)}
                     title="Delete row"
+                    disabled={mutating}
                   >
                     ×
                   </button>

@@ -1,11 +1,14 @@
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/Row.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/PresenceUpdate.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/User.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/TableSummaryResponse.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/service/PresenceService.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/repository/UserRepository.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/ColumnType.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/UpdateCellsRequest.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/ColumnResponse.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/RowResponse.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/PresenceController.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/config/WebSocketConfig.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/Table.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/CreateTableRequest.java
@@ -23,6 +26,7 @@
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/service/TableService.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/ColumnController.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/repository/TableRepository.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/config/WebSocketEventListener.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/converters/StringListConverter.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/ReorderColumnsRequest.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/ErrorHandler.java

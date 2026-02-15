@@ -46,7 +46,6 @@ class RowServiceTest {
   @Test
   void addRow_createsRow() {
     when(tableRepository.findByShareTokenWithColumns(shareToken)).thenReturn(Optional.of(table));
-    when(tableRepository.save(any(Table.class))).thenAnswer(inv -> inv.getArgument(0));
 
     var row = rowService.addRow(shareToken, Optional.empty());
 

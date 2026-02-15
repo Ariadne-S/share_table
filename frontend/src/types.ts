@@ -35,3 +35,12 @@ export interface CreateTableRequest {
   name: string;
   columns?: { name: string; type?: string; order?: number }[];
 }
+
+export interface PresenceViewer {
+  userId: string;
+  displayName: string;
+}
+
+export interface PresenceUpdate {
+  viewers: PresenceViewer[];
+}

@@ -65,8 +65,7 @@ public class RowService {
     var table = row.getTable();
     table.getRows().remove(row);
     rowRepository.delete(row);
-    user.map(u -> entityManager.getReference(User.class, u.getId()))
-        .ifPresent(table::markModified);
+    user.map(u -> entityManager.getReference(User.class, u.getId())).ifPresent(table::markModified);
     entityManager.flush();
     broadcaster.broadcastTableUpdate(shareToken, table);
     return true;

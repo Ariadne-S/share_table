@@ -3,9 +3,12 @@ com/sharetable/controller/RootController.class
 com/sharetable/domain/Column.class
 com/sharetable/dto/AddColumnRequest.class
 com/sharetable/config/WebConfig.class
+com/sharetable/service/PresenceService.class
 com/sharetable/dto/UpdateColumnRequest.class
 com/sharetable/repository/UserRepository.class
+com/sharetable/dto/PresenceUpdate$PresenceInfo.class
 com/sharetable/domain/Cell$CellId.class
+com/sharetable/config/WebSocketEventListener.class
 com/sharetable/dto/ReorderColumnsRequest.class
 com/sharetable/controller/ErrorHandler.class
 com/sharetable/dto/ColumnResponse.class
@@ -21,6 +24,7 @@ com/sharetable/controller/TableController.class
 com/sharetable/domain/converters/StringListConverter$1.class
 com/sharetable/service/TableService.class
 com/sharetable/service/TableUpdateBroadcaster.class
+com/sharetable/dto/PresenceUpdate.class
 com/sharetable/controller/RowController.class
 com/sharetable/dto/CreateTableRequest$ColumnInput.class
 com/sharetable/repository/TableRepository.class
@@ -28,6 +32,7 @@ com/sharetable/service/UserService.class
 com/sharetable/ShareTableApplication.class
 com/sharetable/domain/Cell.class
 com/sharetable/service/RowService.class
+com/sharetable/controller/PresenceController.class
 com/sharetable/dto/TableSummaryResponse.class
 com/sharetable/domain/converters/StringListConverter.class
 com/sharetable/domain/Table.class

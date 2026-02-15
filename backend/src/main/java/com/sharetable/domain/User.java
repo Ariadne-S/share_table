@@ -5,15 +5,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * A user/editor identity. No authentication - the client generates the ID and optionally provides
- * a display name. Used for createdBy/modifiedBy tracking.
+ * A user/editor identity. No authentication - the client generates the ID and optionally provides a
+ * display name. Used for createdBy/modifiedBy tracking.
  */
 @Entity
 @jakarta.persistence.Table(name = "app_user")
 public class User {
 
-  @Id
-  private UUID id;
+  @Id private UUID id;
 
   @jakarta.persistence.Column(name = "display_name", nullable = false)
   private String displayName;
@@ -38,8 +37,7 @@ public class User {
   }
 
   public void setDisplayName(String displayName) {
-    this.displayName =
-        displayName != null && !displayName.isBlank() ? displayName : "Anonymous";
+    this.displayName = displayName != null && !displayName.isBlank() ? displayName : "Anonymous";
   }
 
   public Instant getCreatedAt() {

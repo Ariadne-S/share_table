@@ -34,7 +34,8 @@ public class ColumnService {
   }
 
   @Transactional
-  public Optional<Column> addColumn(UUID shareToken, AddColumnRequest request, Optional<User> user) {
+  public Optional<Column> addColumn(
+      UUID shareToken, AddColumnRequest request, Optional<User> user) {
     return tableRepository
         .findByShareTokenWithColumns(shareToken)
         .map(
@@ -113,8 +114,7 @@ public class ColumnService {
           .findFirst()
           .ifPresent(c -> c.setOrder(order));
     }
-    user.map(u -> entityManager.getReference(User.class, u.getId()))
-        .ifPresent(table::markModified);
+    user.map(u -> entityManager.getReference(User.class, u.getId())).ifPresent(table::markModified);
     tableRepository.save(table);
     broadcaster.broadcastTableUpdate(shareToken, table);
     return true;
@@ -129,8 +129,7 @@ public class ColumnService {
     if (toRemove.isEmpty()) return false;
 
     table.getColumns().remove(toRemove.get());
-    user.map(u -> entityManager.getReference(User.class, u.getId()))
-        .ifPresent(table::markModified);
+    user.map(u -> entityManager.getReference(User.class, u.getId())).ifPresent(table::markModified);
     tableRepository.save(table);
     broadcaster.broadcastTableUpdate(shareToken, table);
     return true;
