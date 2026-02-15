@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getUserId, getUserName } from '../userStorage';
@@ -14,12 +14,32 @@ export function useTableWebSocket(
   const clientRef = useRef<Client | null>(null);
   const onUpdateRef = useRef(onUpdate);
   const onPresenceRef = useRef(options?.onPresence);
+  const shareTokenRef = useRef(shareToken);
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
 
   useEffect(() => {
     onUpdateRef.current = onUpdate;
     onPresenceRef.current = options?.onPresence;
   });
+
+  useEffect(() => {
+    shareTokenRef.current = shareToken;
+  }, [shareToken]);
+
+  const publishEditing = useCallback((rowId: string | null, columnId: string | null) => {
+    const client = clientRef.current;
+    const token = shareTokenRef.current;
+    if (!client?.connected || !token) return;
+    client.publish({
+      destination: `/app/presence/editing/${token}`,
+      body: JSON.stringify({
+        userId: getUserId(),
+        displayName: getUserName(),
+        rowId: rowId ?? '',
+        columnId: columnId ?? '',
+      }),
+    });
+  }, []);
 
   useEffect(() => {
     if (!shareToken) {
@@ -71,5 +91,5 @@ export function useTableWebSocket(
     };
   }, [shareToken]);
 
-  return { connectionState };
+  return { connectionState, publishEditing };
 }

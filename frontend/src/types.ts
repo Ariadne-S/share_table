@@ -41,6 +41,14 @@ export interface PresenceViewer {
   displayName: string;
 }
 
+export interface PresenceActiveEdit {
+  userId: string;
+  displayName: string;
+  rowId: string;
+  columnId: string;
+}
+
 export interface PresenceUpdate {
   viewers: PresenceViewer[];
+  activeEdits?: PresenceActiveEdit[];
 }

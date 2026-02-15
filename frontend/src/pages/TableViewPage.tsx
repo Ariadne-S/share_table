@@ -16,6 +16,7 @@ import { TableViewSkeleton } from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
 import { useDebouncedCallback } from '../hooks/useDebouncedCallback';
 import { useTableWebSocket } from '../hooks/useTableWebSocket';
+import { getUserId } from '../userStorage';
 import type { ColumnResponse, PresenceUpdate, RowResponse, TableResponse } from '../types';
 
 const COLUMN_TYPES = [
@@ -96,9 +97,15 @@ export default function TableViewPage() {
     setTable(updated);
   }, []);
 
-  const { connectionState } = useTableWebSocket(shareToken ?? '', handleTableUpdate, {
-    onPresence: setPresence,
-  });
+  const { connectionState, publishEditing } = useTableWebSocket(
+    shareToken ?? '',
+    handleTableUpdate,
+    { onPresence: setPresence }
+  );
+
+  useEffect(() => {
+    publishEditing(editingCell?.rowId ?? null, editingCell?.columnId ?? null);
+  }, [editingCell, publishEditing]);
 
   useEffect(() => {
     if (connectionState === 'error') {
@@ -339,6 +346,13 @@ export default function TableViewPage() {
       table.columns.some((c) => (row.cells[c.id] ?? '').toLowerCase().includes(q))
     );
   }, [table, filterQuery]);
+
+  const myUserId = getUserId();
+  const othersEditingCell = useMemo(() => {
+    const edits = presence?.activeEdits ?? [];
+    return (rowId: string, columnId: string) =>
+      edits.find((e) => e.rowId === rowId && e.columnId === columnId && e.userId !== myUserId);
+  }, [presence?.activeEdits, myUserId]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -639,8 +653,19 @@ export default function TableViewPage() {
                   const value = row.cells[col.id] ?? '';
                   const colType = getCellColumnType(col);
                   const isEnum = colType === 'enum' && col.enumValues && col.enumValues.length > 0;
+                  const otherEditing = othersEditingCell(row.id, col.id);
                   return (
-                    <td key={col.id} className="border border-border px-3 py-2">
+                    <td
+                      key={col.id}
+                      className={`border border-border px-3 py-2 ${
+                        otherEditing ? 'ring-2 ring-amber-400 ring-inset bg-amber-500/10' : ''
+                      }`}
+                      title={
+                        otherEditing
+                          ? `${otherEditing.displayName || 'Someone'} is editing`
+                          : undefined
+                      }
+                    >
                       {isEditing ? (
                         isEnum ? (
                           <select

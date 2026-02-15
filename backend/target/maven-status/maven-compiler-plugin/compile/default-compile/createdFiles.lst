@@ -9,6 +9,7 @@ com/sharetable/repository/UserRepository.class
 com/sharetable/dto/PresenceUpdate$PresenceInfo.class
 com/sharetable/domain/Cell$CellId.class
 com/sharetable/config/WebSocketEventListener.class
+com/sharetable/dto/PresenceUpdate$ActiveEdit.class
 com/sharetable/dto/ReorderColumnsRequest.class
 com/sharetable/controller/ErrorHandler.class
 com/sharetable/dto/ColumnResponse.class
