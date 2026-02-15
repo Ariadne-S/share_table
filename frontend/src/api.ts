@@ -1,6 +1,11 @@
 import type { ColumnResponse, RowResponse, TableResponse, TableSummaryResponse } from './types';
+import { getUserHeaders } from './userStorage';
 
 const API_BASE = import.meta.env.DEV ? '/api' : '/api';
+
+function mutationHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return { ...getUserHeaders(), ...extra };
+}
 
 export async function getTables(): Promise<TableSummaryResponse[]> {
   const res = await fetch(`${API_BASE}/tables`);
@@ -14,7 +19,7 @@ export async function createTable(request: {
 }): Promise<TableResponse> {
   const res = await fetch(`${API_BASE}/tables`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutationHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(request),
   });
   if (!res.ok) throw new Error(`Failed to create table: ${res.statusText}`);
@@ -28,13 +33,17 @@ export async function getTable(shareToken: string): Promise<TableResponse> {
 }
 
 export async function deleteTable(shareToken: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/tables/${shareToken}`, { method: 'DELETE' });
+  const res = await fetch(`${API_BASE}/tables/${shareToken}`, {
+    method: 'DELETE',
+    headers: getUserHeaders(),
+  });
   if (!res.ok) throw new Error(`Failed to delete table: ${res.statusText}`);
 }
 
 export async function addRow(shareToken: string): Promise<RowResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/rows`, {
     method: 'POST',
+    headers: getUserHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to add row: ${res.statusText}`);
   return res.json();
@@ -43,6 +52,7 @@ export async function addRow(shareToken: string): Promise<RowResponse> {
 export async function deleteRow(shareToken: string, rowId: string): Promise<void> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/rows/${rowId}`, {
     method: 'DELETE',
+    headers: getUserHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to delete row: ${res.statusText}`);
 }
@@ -54,7 +64,7 @@ export async function updateCells(
 ): Promise<RowResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/rows/${rowId}/cells`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutationHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ cells }),
   });
   if (!res.ok) {
@@ -70,7 +80,7 @@ export async function addColumn(
 ): Promise<ColumnResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutationHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(column),
   });
   if (!res.ok) throw new Error(`Failed to add column: ${res.statusText}`);
@@ -84,7 +94,7 @@ export async function updateColumn(
 ): Promise<ColumnResponse> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns/${columnId}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutationHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(column),
   });
   if (!res.ok) throw new Error(`Failed to update column: ${res.statusText}`);
@@ -94,6 +104,7 @@ export async function updateColumn(
 export async function deleteColumn(shareToken: string, columnId: string): Promise<void> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns/${columnId}`, {
     method: 'DELETE',
+    headers: getUserHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to delete column: ${res.statusText}`);
 }
@@ -101,7 +112,7 @@ export async function deleteColumn(shareToken: string, columnId: string): Promis
 export async function reorderColumns(shareToken: string, columnIds: string[]): Promise<void> {
   const res = await fetch(`${API_BASE}/tables/${shareToken}/columns/reorder`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutationHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ columnIds }),
   });
   if (!res.ok) throw new Error(`Failed to reorder columns: ${res.statusText}`);

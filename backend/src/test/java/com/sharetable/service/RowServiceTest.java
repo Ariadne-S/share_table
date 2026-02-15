@@ -11,6 +11,7 @@ import com.sharetable.domain.Table;
 import com.sharetable.dto.UpdateCellsRequest;
 import com.sharetable.repository.RowRepository;
 import com.sharetable.repository.TableRepository;
+import jakarta.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,7 @@ class RowServiceTest {
   @Mock TableRepository tableRepository;
   @Mock RowRepository rowRepository;
   @Mock TableUpdateBroadcaster broadcaster;
+  @Mock EntityManager entityManager;
 
   @InjectMocks RowService rowService;
 
@@ -46,13 +48,12 @@ class RowServiceTest {
     when(tableRepository.findByShareTokenWithColumns(shareToken)).thenReturn(Optional.of(table));
     when(tableRepository.save(any(Table.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    var row = rowService.addRow(shareToken);
+    var row = rowService.addRow(shareToken, Optional.empty());
 
     assertThat(row).isPresent();
     assertThat(row.get().getOrder()).isEqualTo(0);
     assertThat(row.get().getTable()).isSameAs(table);
     assertThat(table.getRows()).hasSize(1).first().isSameAs(row.get());
-    verify(tableRepository).save(table);
     verify(broadcaster).broadcastTableUpdate(shareToken, table);
   }
 
@@ -60,7 +61,7 @@ class RowServiceTest {
   void addRow_unknownToken_returnsEmpty() {
     when(tableRepository.findByShareTokenWithColumns(shareToken)).thenReturn(Optional.empty());
 
-    var row = rowService.addRow(shareToken);
+    var row = rowService.addRow(shareToken, Optional.empty());
 
     assertThat(row).isEmpty();
     verify(tableRepository).findByShareTokenWithColumns(shareToken);
@@ -78,7 +79,10 @@ class RowServiceTest {
 
     var updated =
         rowService.updateCells(
-            shareToken, row.getId(), new UpdateCellsRequest(Map.of(column.getId(), "hello")));
+            shareToken,
+            row.getId(),
+            new UpdateCellsRequest(Map.of(column.getId(), "hello")),
+            Optional.empty());
 
     assertThat(updated).isPresent();
     assertThat(updated.get().getCells()).hasSize(1);
@@ -95,7 +99,7 @@ class RowServiceTest {
     when(rowRepository.findByTableShareTokenAndId(shareToken, row.getId()))
         .thenReturn(Optional.of(row));
 
-    boolean deleted = rowService.deleteRow(shareToken, row.getId());
+    boolean deleted = rowService.deleteRow(shareToken, row.getId(), Optional.empty());
 
     assertThat(deleted).isTrue();
     verify(rowRepository).delete(row);
@@ -108,7 +112,7 @@ class RowServiceTest {
     when(rowRepository.findByTableShareTokenAndId(shareToken, unknownRowId))
         .thenReturn(Optional.empty());
 
-    boolean deleted = rowService.deleteRow(shareToken, unknownRowId);
+    boolean deleted = rowService.deleteRow(shareToken, unknownRowId, Optional.empty());
 
     assertThat(deleted).isFalse();
   }

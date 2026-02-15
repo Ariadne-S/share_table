@@ -27,6 +27,17 @@ public class Table {
   @jakarta.persistence.Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "created_by_id")
+  private User createdBy;
+
+  @jakarta.persistence.Column(name = "modified_at")
+  private Instant modifiedAt;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "modified_by_id")
+  private User modifiedBy;
+
   @jakarta.persistence.Column(name = "deleted_at")
   private Instant deletedAt;
 
@@ -72,6 +83,36 @@ public class Table {
 
   public Instant getCreatedAt() {
     return createdAt;
+  }
+
+  public User getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(User createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  public Instant getModifiedAt() {
+    return modifiedAt;
+  }
+
+  public void setModifiedAt(Instant modifiedAt) {
+    this.modifiedAt = modifiedAt;
+  }
+
+  public User getModifiedBy() {
+    return modifiedBy;
+  }
+
+  public void setModifiedBy(User modifiedBy) {
+    this.modifiedBy = modifiedBy;
+  }
+
+  /** Call when table is modified; sets modifiedAt and modifiedBy. */
+  public void markModified(User user) {
+    this.modifiedAt = Instant.now();
+    this.modifiedBy = user;
   }
 
   public Instant getDeletedAt() {

@@ -10,6 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface TableRepository extends JpaRepository<Table, UUID> {
 
+  @Query(
+      "SELECT t FROM ShareTable t "
+          + "LEFT JOIN FETCH t.createdBy LEFT JOIN FETCH t.modifiedBy "
+          + "WHERE t.deletedAt IS NULL ORDER BY t.createdAt DESC")
   List<Table> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
 
   @Query(

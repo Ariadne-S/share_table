@@ -78,10 +78,20 @@ export default function TablesListPage() {
             <li key={t.id} className="flex items-center gap-2 mb-2">
               <Link
                 to={`/t/${t.shareToken}`}
-                className="flex-1 flex justify-between items-center px-4 py-3 rounded-lg border border-border no-underline text-fg hover:bg-accent/10 hover:border-accent transition-colors"
+                className="flex-1 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 px-4 py-3 rounded-lg border border-border no-underline text-fg hover:bg-accent/10 hover:border-accent transition-colors"
               >
                 <span className="font-medium">{t.name}</span>
-                <span className="text-sm text-muted">{formatDate(t.createdAt)}</span>
+                <div className="flex flex-col sm:items-end text-sm text-muted">
+                  <span>
+                    {t.createdByName ? `Created by ${t.createdByName} · ` : ''}
+                    {formatDate(t.createdAt)}
+                  </span>
+                  {t.modifiedByName && t.modifiedAt && (
+                    <span>
+                      Edited by {t.modifiedByName} · {formatDate(t.modifiedAt)}
+                    </span>
+                  )}
+                </div>
               </Link>
               <button
                 type="button"

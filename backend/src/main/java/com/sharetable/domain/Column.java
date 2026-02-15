@@ -35,18 +35,33 @@ public class Column {
   @Convert(converter = StringListConverter.class)
   private List<String> enumValues = new ArrayList<>();
 
+  /** System column type: created_at, modified_at, modified_by. Null = regular column. */
+  @jakarta.persistence.Column(name = "system_column", length = 20)
+  private String systemColumn;
+
   protected Column() {}
 
   public Column(Table table, String name, String type, int order) {
-    this(table, name, type, order, List.of());
+    this(table, name, type, order, List.of(), null);
   }
 
   public Column(Table table, String name, String type, int order, List<String> enumValues) {
+    this(table, name, type, order, enumValues, null);
+  }
+
+  public Column(
+      Table table,
+      String name,
+      String type,
+      int order,
+      List<String> enumValues,
+      String systemColumn) {
     this.table = table;
     this.name = name;
     this.type = type != null ? type : "text";
     this.order = order;
     this.enumValues = enumValues != null ? new ArrayList<>(enumValues) : new ArrayList<>();
+    this.systemColumn = systemColumn;
   }
 
   public UUID getId() {
@@ -91,5 +106,13 @@ public class Column {
 
   public boolean hasEnumConstraint() {
     return enumValues != null && !enumValues.isEmpty();
+  }
+
+  public String getSystemColumn() {
+    return systemColumn;
+  }
+
+  public boolean isSystemColumn() {
+    return systemColumn != null && !systemColumn.isBlank();
   }
 }

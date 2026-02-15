@@ -99,6 +99,17 @@ createuser -s postgres
 createdb sharetable
 ```
 
+### Flyway migrations
+
+Migrations run automatically when the app starts. To run them manually:
+
+```bash
+cd backend
+./mvnw flyway:migrate
+```
+
+Override database config with `-Dflyway.url=... -Dflyway.user=... -Dflyway.password=...` (defaults match `application.properties`).
+
 ## API Reference
 
 | Method | Path | Description |
@@ -128,10 +139,18 @@ WebSocket: connect to `/ws`, subscribe to `/topic/tables/{shareToken}` for real-
 - **EditorConfig**: `.editorconfig` enforces indentation and line endings
 - **Health check**: http://localhost:8080/actuator/health
 
+## User Identity (No Auth)
+
+ShareTable tracks who created and last modified tables without requiring login:
+
+- **Client**: On first visit, a UUID is generated and stored in `localStorage`. Users can set a display name via "Set your name" in the nav.
+- **Headers**: All mutation requests send `X-User-Id` and `X-User-Name` (optional) to the API.
+- **Backend**: Users are created on first use. Tables store `createdBy`, `modifiedAt`, `modifiedBy` for audit info.
+
 ## Features
 
-- **Tables**: Create, list, soft-delete. Share via link (share token).
-- **Columns**: Add, edit, delete, reorder (drag-and-drop). Types: string, number, date, datetime, time, boolean, url, email, currency, enum.
+- **Tables**: Create, list, soft-delete. Share via link (share token). Created-by and last-edited-by shown in list.
+- **Columns**: Add, edit, delete, reorder (drag-and-drop). Types: string, number, date, datetime, time, boolean, url, email, currency, enum. All tables include default columns: Created At, Modified At, Modified By (auto-populated).
 - **Rows & cells**: Add rows, edit cells with type-aware inputs, delete rows. Debounced saves (400ms).
 - **Real-time**: WebSocket broadcasts changes to all viewers.
 - **UI**: Light/dark mode, loading skeletons, per-page error boundaries, offline indicator.

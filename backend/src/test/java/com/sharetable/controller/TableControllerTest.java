@@ -29,11 +29,12 @@ class TableControllerTest {
   @Autowired ObjectMapper objectMapper;
 
   @MockBean TableService tableService;
+  @MockBean UserResolver userResolver;
 
   @Test
   void createTable_returnsCreatedWithShareToken() throws Exception {
     var table = new Table("My List");
-    when(tableService.createTable(any(CreateTableRequest.class))).thenReturn(table);
+    when(tableService.createTable(any(CreateTableRequest.class), any())).thenReturn(table);
 
     var request = new CreateTableRequest("My List", null);
     String body = objectMapper.writeValueAsString(request);
@@ -45,7 +46,7 @@ class TableControllerTest {
         .andExpect(jsonPath("$.name").value("My List"))
         .andExpect(jsonPath("$.columns").isArray());
 
-    verify(tableService).createTable(any(CreateTableRequest.class));
+    verify(tableService).createTable(any(CreateTableRequest.class), any());
   }
 
   @Test

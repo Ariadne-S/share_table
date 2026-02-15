@@ -97,27 +97,31 @@ export default function TableViewPage() {
   useTableWebSocket(shareToken ?? '', handleTableUpdate);
 
   const performCellSave = useCallback(
-    async (rowId: string, columnId: string, value: string) => {
+    async (rowId: string, columnId: string, value: string, closeEditor: boolean) => {
       if (!shareToken) return;
-      setEditingCell(null);
+      if (closeEditor) setEditingCell(null);
       try {
         await updateCells(shareToken, rowId, { [columnId]: value });
         fetchTable();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to update');
-        setEditingCell({ rowId, columnId });
+        if (closeEditor) setEditingCell({ rowId, columnId });
       }
     },
     [shareToken, fetchTable]
   );
 
-  const debouncedCellSave = useDebouncedCallback(performCellSave, 400);
+  const debouncedCellSave = useDebouncedCallback(
+    (rowId: string, columnId: string, value: string) =>
+      performCellSave(rowId, columnId, value, false),
+    400
+  );
 
   const handleCellSave = useCallback(
-    (rowId: string, columnId: string, value: string, immediate = false) => {
-      if (immediate) {
+    (rowId: string, columnId: string, value: string, closeEditor = false) => {
+      if (closeEditor) {
         debouncedCellSave.cancel();
-        performCellSave(rowId, columnId, value);
+        performCellSave(rowId, columnId, value, true);
       } else {
         debouncedCellSave(rowId, columnId, value);
       }
@@ -680,6 +684,22 @@ export default function TableViewPage() {
                                 );
                               }
                               if (e.key === 'Escape') setEditingCell(null);
+                              if (e.key === ' ') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (colType === 'string') {
+                                  const input = e.target as HTMLInputElement;
+                                  const start = input.selectionStart ?? input.value.length;
+                                  const end = input.selectionEnd ?? input.value.length;
+                                  const newValue =
+                                    input.value.slice(0, start) + ' ' + input.value.slice(end);
+                                  setCellValue(newValue);
+                                  handleCellSave(row.id, col.id, newValue);
+                                  setTimeout(() =>
+                                    input.setSelectionRange(start + 1, start + 1)
+                                  );
+                                }
+                              }
                             }}
                             autoFocus
                             className={inputBase}

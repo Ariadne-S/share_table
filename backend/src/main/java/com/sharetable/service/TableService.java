@@ -3,9 +3,11 @@ package com.sharetable.service;
 import com.sharetable.domain.Column;
 import com.sharetable.domain.ColumnType;
 import com.sharetable.domain.Table;
+import com.sharetable.domain.User;
 import com.sharetable.dto.CreateTableRequest;
 import com.sharetable.dto.TableSummaryResponse;
 import com.sharetable.repository.TableRepository;
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -19,18 +21,30 @@ public class TableService {
 
   private final TableRepository tableRepository;
   private final TableUpdateBroadcaster broadcaster;
+  private final EntityManager entityManager;
 
-  public TableService(TableRepository tableRepository, TableUpdateBroadcaster broadcaster) {
+  public TableService(
+      TableRepository tableRepository,
+      TableUpdateBroadcaster broadcaster,
+      EntityManager entityManager) {
     this.tableRepository = tableRepository;
     this.broadcaster = broadcaster;
+    this.entityManager = entityManager;
   }
 
-  @Transactional
-  public Table createTable(CreateTableRequest request) {
-    var table = new Table(request.name());
+  private static final String SYS_CREATED_AT = "created_at";
+  private static final String SYS_MODIFIED_AT = "modified_at";
+  private static final String SYS_MODIFIED_BY = "modified_by";
 
+  @Transactional
+  public Table createTable(CreateTableRequest request, Optional<User> createdBy) {
+    var table = new Table(request.name());
+    createdBy
+        .map(u -> entityManager.getReference(User.class, u.getId()))
+        .ifPresent(table::setCreatedBy);
+
+    int order = 0;
     if (request.columns() != null) {
-      int order = 0;
       for (var col : request.columns()) {
         var type = ColumnType.normalize(col.type());
         var colOrder = col.order() != null ? col.order() : order;
@@ -45,6 +59,14 @@ public class TableService {
         order++;
       }
     }
+
+    // Default columns: Created At, Modified At, Modified By (auto-populated on row add/edit)
+    table.getColumns().add(
+        new Column(table, "Created At", "datetime", order++, List.of(), SYS_CREATED_AT));
+    table.getColumns().add(
+        new Column(table, "Modified At", "datetime", order++, List.of(), SYS_MODIFIED_AT));
+    table.getColumns().add(
+        new Column(table, "Modified By", "string", order, List.of(), SYS_MODIFIED_BY));
 
     var saved = tableRepository.saveAndFlush(table);
     broadcaster.broadcastTableUpdate(saved.getShareToken(), saved);
@@ -65,15 +87,30 @@ public class TableService {
   }
 
   @Transactional
-  public boolean softDeleteByShareToken(UUID shareToken) {
+  public boolean softDeleteByShareToken(UUID shareToken, Optional<User> modifiedBy) {
     return tableRepository
         .findByShareTokenWithColumns(shareToken)
         .map(
             table -> {
               table.setDeletedAt(Instant.now());
+              modifiedBy
+                  .map(u -> entityManager.getReference(User.class, u.getId()))
+                  .ifPresent(table::markModified);
               tableRepository.save(table);
               return true;
             })
         .orElse(false);
+  }
+
+  public static String getSystemColumnCreatedAt() {
+    return SYS_CREATED_AT;
+  }
+
+  public static String getSystemColumnModifiedAt() {
+    return SYS_MODIFIED_AT;
+  }
+
+  public static String getSystemColumnModifiedBy() {
+    return SYS_MODIFIED_BY;
   }
 }

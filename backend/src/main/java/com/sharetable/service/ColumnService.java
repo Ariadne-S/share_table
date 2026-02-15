@@ -2,9 +2,11 @@ package com.sharetable.service;
 
 import com.sharetable.domain.Column;
 import com.sharetable.domain.ColumnType;
+import com.sharetable.domain.User;
 import com.sharetable.dto.AddColumnRequest;
 import com.sharetable.dto.UpdateColumnRequest;
 import com.sharetable.repository.TableRepository;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,14 +22,19 @@ public class ColumnService {
 
   private final TableRepository tableRepository;
   private final TableUpdateBroadcaster broadcaster;
+  private final EntityManager entityManager;
 
-  public ColumnService(TableRepository tableRepository, TableUpdateBroadcaster broadcaster) {
+  public ColumnService(
+      TableRepository tableRepository,
+      TableUpdateBroadcaster broadcaster,
+      EntityManager entityManager) {
     this.tableRepository = tableRepository;
     this.broadcaster = broadcaster;
+    this.entityManager = entityManager;
   }
 
   @Transactional
-  public Optional<Column> addColumn(UUID shareToken, AddColumnRequest request) {
+  public Optional<Column> addColumn(UUID shareToken, AddColumnRequest request, Optional<User> user) {
     return tableRepository
         .findByShareTokenWithColumns(shareToken)
         .map(
@@ -45,6 +52,8 @@ public class ColumnService {
                       : List.<String>of();
               var column = new Column(table, request.name(), type, order, enumValues);
               table.getColumns().add(column);
+              user.map(u -> entityManager.getReference(User.class, u.getId()))
+                  .ifPresent(table::markModified);
               var saved = tableRepository.save(table);
               broadcaster.broadcastTableUpdate(shareToken, saved);
               return saved.getColumns().stream()
@@ -57,13 +66,14 @@ public class ColumnService {
 
   @Transactional
   public Optional<Column> updateColumn(
-      UUID shareToken, UUID columnId, UpdateColumnRequest request) {
+      UUID shareToken, UUID columnId, UpdateColumnRequest request, Optional<User> user) {
     return tableRepository.findByShareTokenWithColumns(shareToken).stream()
         .flatMap(t -> t.getColumns().stream())
         .filter(c -> c.getId().equals(columnId))
         .findFirst()
         .map(
             column -> {
+              var table = column.getTable();
               if (request.name() != null && !request.name().isBlank()) {
                 column.setName(request.name());
               }
@@ -80,13 +90,16 @@ public class ColumnService {
                         .map(String::trim)
                         .toList());
               }
-              broadcaster.broadcastTableUpdate(shareToken, column.getTable());
+              user.map(u -> entityManager.getReference(User.class, u.getId()))
+                  .ifPresent(table::markModified);
+              tableRepository.save(table);
+              broadcaster.broadcastTableUpdate(shareToken, table);
               return column;
             });
   }
 
   @Transactional
-  public boolean reorderColumns(UUID shareToken, List<UUID> columnIds) {
+  public boolean reorderColumns(UUID shareToken, List<UUID> columnIds, Optional<User> user) {
     var tableOpt = tableRepository.findByShareTokenWithColumns(shareToken);
     if (tableOpt.isEmpty() || columnIds == null || columnIds.isEmpty()) return false;
     var table = tableOpt.get();
@@ -100,12 +113,15 @@ public class ColumnService {
           .findFirst()
           .ifPresent(c -> c.setOrder(order));
     }
+    user.map(u -> entityManager.getReference(User.class, u.getId()))
+        .ifPresent(table::markModified);
+    tableRepository.save(table);
     broadcaster.broadcastTableUpdate(shareToken, table);
     return true;
   }
 
   @Transactional
-  public boolean deleteColumn(UUID shareToken, UUID columnId) {
+  public boolean deleteColumn(UUID shareToken, UUID columnId, Optional<User> user) {
     var table = tableRepository.findByShareTokenWithColumns(shareToken).orElse(null);
     if (table == null) return false;
 
@@ -113,6 +129,8 @@ public class ColumnService {
     if (toRemove.isEmpty()) return false;
 
     table.getColumns().remove(toRemove.get());
+    user.map(u -> entityManager.getReference(User.class, u.getId()))
+        .ifPresent(table::markModified);
     tableRepository.save(table);
     broadcaster.broadcastTableUpdate(shareToken, table);
     return true;

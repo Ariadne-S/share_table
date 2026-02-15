@@ -26,6 +26,9 @@ export interface TableSummaryResponse {
   shareToken: string;
   name: string;
   createdAt: string;
+  createdByName?: string | null;
+  modifiedAt?: string | null;
+  modifiedByName?: string | null;
 }
 
 export interface CreateTableRequest {

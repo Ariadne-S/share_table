@@ -19,6 +19,10 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- Flyway Maven plugin: override with -Dflyway.url= etc or env SPRING_DATASOURCE_* -->
+        <flyway.url>jdbc:postgresql://localhost:5432/sharetable</flyway.url>
+        <flyway.user>postgres</flyway.user>
+        <flyway.password>postgres</flyway.password>
     </properties>
 
     <dependencies>
@@ -81,6 +85,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <configuration>
+                    <url>${flyway.url}</url>
+                    <user>${flyway.user}</user>
+                    <password>${flyway.password}</password>
+                    <locations>classpath:db/migration</locations>
+                </configuration>
             </plugin>
         </plugins>
     </build>

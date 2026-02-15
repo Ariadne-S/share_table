@@ -1,5 +1,7 @@
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/Row.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/User.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/TableSummaryResponse.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/repository/UserRepository.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/ColumnType.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/UpdateCellsRequest.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/ColumnResponse.java
@@ -11,6 +13,7 @@
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/AddColumnRequest.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/RootController.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/domain/Cell.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/service/UserService.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/service/ColumnService.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/config/WebConfig.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/dto/UpdateColumnRequest.java
@@ -27,3 +30,4 @@
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/service/RowService.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/ShareTableApplication.java
 /Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/RowController.java
+/Users/tonisefton/dev/share_table/backend/src/main/java/com/sharetable/controller/UserResolver.java
